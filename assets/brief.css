@@ -394,8 +394,10 @@ input[type="date"].inp { max-width: 240px; }
 .thanks h2 { margin: 0 0 10px; font-size: 30px; }
 .thanks p { margin: 0 auto 24px; max-width: 520px; color: var(--ink-2); }
 .thanks-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.is-done .side, .is-done .topbar, .is-done .works-wrap, .is-done .process-wrap, .is-done .pv-side { display: none; }
-.is-done .layout { grid-template-columns: 1fr; max-width: 820px; }
+/* после отправки: «Спасибо» и рядом макет сайта по ответам — на память и для вау-эффекта */
+.is-done .side, .is-done .topbar { display: none; }
+.is-done .layout { grid-template-columns: minmax(0, 1fr) 340px; max-width: 1040px; align-items: center; }
+.is-done .pv-side { position: static; }
 .foot { max-width: 1280px; margin: 0 auto; padding: 8px 16px 40px; font-size: 13.5px; color: var(--muted); }
 .foot a { color: inherit; }
 
@@ -528,6 +530,7 @@ input[type="date"].inp { max-width: 240px; }
   .process::before { display: none; }
 }
 @media (max-width: 960px) {
+  .is-done .layout { grid-template-columns: 1fr; }
   .toast { bottom: calc(96px + env(safe-area-inset-bottom)); }
   .layout { grid-template-columns: 1fr; gap: 0; padding-top: 20px; }
   .pv-side { position: static; justify-self: center; width: 100%; max-width: 520px; margin-top: 36px; }

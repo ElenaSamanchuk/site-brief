@@ -1235,6 +1235,11 @@
         DEV.telegram ? h('a', { class: 'btn', href: DEV.telegram, target: '_blank', rel: 'noopener' }, ['Написать в Telegram']) : null
       ])
     ]));
+    var startBtn = document.getElementById('start-btn');
+    if (startBtn) { startBtn.textContent = 'Бриф отправлен ✓'; startBtn.setAttribute('href', '#thanks'); }
+    var pvHead = document.querySelector('.pv-side-head span');
+    if (pvHead) pvHead.textContent = 'собран из ваших ответов';
+    if (window.BriefPreview) requestAnimationFrame(function () { BriefPreview.refit(); });
     var thanks = document.getElementById('thanks');
     thanks.scrollIntoView({ block: 'center' });
     thanks.focus({ preventScroll: true });
