@@ -38,16 +38,17 @@
     return h ? h.textContent.trim() : '';
   }
 
-  var ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg>';
-  var launcher = el('button', 'chat-launch', null, { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
-  launcher.innerHTML = ICON + '<span>Есть вопрос?</span>';
+  var launcher = el('button', 'chat-launch', null, { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'aria-label': 'Есть вопрос? Помощник отвечает сразу' });
+  launcher.innerHTML = '<span class="chat-launch-ava" aria-hidden="true">ЕС<i></i></span><span class="chat-launch-text"><b>Есть вопрос?</b><small>Отвечу сразу</small></span>';
   var panel = el('div', 'chat-panel', null, { role: 'dialog', 'aria-label': 'Вопрос Елене', hidden: '' });
   var head = el('div', 'chat-head');
   var who = el('div', 'chat-who');
-  who.appendChild(el('span', 'chat-ava', 'ЕС', { 'aria-hidden': 'true' }));
+  var ava = el('span', 'chat-ava', 'ЕС', { 'aria-hidden': 'true' });
+  ava.appendChild(el('i'));
+  who.appendChild(ava);
   var whoText = el('span');
   whoText.appendChild(el('b', null, 'Помощник по брифу'));
-  whoText.appendChild(el('small', null, 'Отвечаю сразу, сложное передаю Елене'));
+  whoText.appendChild(el('small', null, 'онлайн · сложное передаю Елене'));
   who.appendChild(whoText);
   var close = el('button', 'chat-close', '×', { type: 'button', 'aria-label': 'Закрыть' });
   head.appendChild(who); head.appendChild(close);
@@ -70,6 +71,7 @@
         var j = await (await fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'chat=probe&n=0', { cache: 'no-store' })).json();
         if (j && Object.prototype.hasOwnProperty.call(j, 'answer')) {
           document.body.appendChild(launcher); document.body.appendChild(panel);
+          setTimeout(function () { launcher.classList.add('chat-hello'); }, 5000);
           return;
         }
         return; // сервер ответил, но чат не умеет
@@ -114,22 +116,24 @@
     var typing = el('div', 'chat-msg chat-bot chat-typing', null, { 'aria-label': 'Печатает' });
     typing.innerHTML = '<i></i><i></i><i></i>';
     list.appendChild(typing); list.scrollTop = list.scrollHeight;
-    var url = endpoint(), answer = null, n = st.n;
+    var url = endpoint(), answer = null, n = st.n, slow = null;
     if (url) {
       var payload = { type: 'chat', key: CFG.formKey || '', sid: st.sid, n: n, text: text, step: currentStep(), contact: contact(),
         tag: new URLSearchParams(location.search).get('tag') || '', history: st.msgs.slice(-7, -1) };
       try {
-        var ctrl = new AbortController(); var t = setTimeout(function () { ctrl.abort(); }, 30000);
+        slow = setTimeout(function () { if (typing.isConnected) typing.setAttribute('data-slow', 'Секунду, уточняю…'); }, 7000);
+        var ctrl = new AbortController(); var t = setTimeout(function () { ctrl.abort(); }, 22000);
         var res = await fetch(url, { method: 'POST', body: JSON.stringify(payload), signal: ctrl.signal });
         clearTimeout(t);
         var j = await res.json(); if (j && j.ok && j.answer) answer = j.answer;
       } catch (e) { /* ответ Google мог потеряться — спросим ещё раз ниже */ }
-      for (var i = 0; !answer && i < 6; i++) {
+      for (var i = 0; !answer && i < 5; i++) {
         await wait(2000);
         try { var g = await (await fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'chat=' + encodeURIComponent(st.sid) + '&n=' + n, { cache: 'no-store' })).json(); if (g && g.answer) answer = g.answer; } catch (e) { }
       }
     }
     if (!answer) answer = 'Не получилось ответить сразу — напишите, пожалуйста, Елене в Telegram @ElaneDmitrievna. А бриф можно продолжать: ответы сохраняются';
+    clearTimeout(slow);
     typing.remove();
     st.msgs.push({ role: 'assistant', text: answer }); save();
     bubble('assistant', answer);
