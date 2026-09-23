@@ -13,10 +13,11 @@ const OUT = path.join(root, 'tools', 'out');
 // LOSE=2 — первые 2 ответа на отправку «теряются» (как иногда у Google): бриф обработан, а страница ответа не видит
 let lose = Number(process.env.LOSE || 0);
 const cacheStore = new Map();
+const propStore = {};
 const CacheService = { getScriptCache: () => ({ get: (k) => cacheStore.get(k) ?? null, put: (k, v) => { cacheStore.set(k, v); } }) };
 const LockService = { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => { } }) };
 
-function makeContext(dir) {
+export function makeContext(dir) {
   fs.mkdirSync(dir, { recursive: true });
   const log = [];
   const write = (name, data) => fs.writeFileSync(path.join(dir, name.replace(/[\/\\]/g, '_')), data);
@@ -48,7 +49,7 @@ function makeContext(dir) {
         return f.replace('yyyy', p.year).replace('MM', p.month).replace('dd', p.day).replace('HH', p.hour).replace('mm', p.minute);
       },
     },
-    PropertiesService: { getScriptProperties: () => ({ getProperties: () => ({ TG_TOKEN: 'test-token', TG_CHAT_ID: '111', FORM_KEY: 'site-brief-2026' }) }) },
+    PropertiesService: { getScriptProperties: () => ({ getProperties: () => Object.assign({ TG_TOKEN: 'test-token', TG_CHAT_ID: '111', FORM_KEY: 'site-brief-2026' }, propStore), getProperty: (k) => propStore[k] ?? null, setProperty: (k, v) => { propStore[k] = String(v); } }) },
     Session: { getEffectiveUser: () => ({ getEmail: () => 'owner@example.com' }) },
     DriveApp: {
       getRootFolder: () => folder('root'),
