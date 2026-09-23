@@ -39,13 +39,13 @@
     { row: 2, title: 'Growfood', tags: ['Еда', 'Игра'], text: 'Колесо фортуны с призами и промокодами', img: W + 'gf-wheel-full.webp', href: 'https://amb.growfood.pro/page79566396.html#reg' },
     { row: 2, title: 'Приём', tags: ['Еда', 'Акции'], text: 'Таймер акции с Т‑Банком', img: W + 'priem-timer.webp', href: 'https://priem.menu/?cmz=Kdw5' },
     { row: 2, title: 'Приём', tags: ['Еда', 'Игра'], text: 'Игра-мемо «Запомни лето»', img: W + 'priem-cards.webp', href: 'https://priem.menu/?cmz=mmBd' },
-    { row: 2, title: 'Savinar', tags: ['Образование', 'SMM'], text: 'Лендинг курса по продвижению', img: W + 'savinar.webp', href: 'https://savinarv.tilda.ws/' },
+    { row: 2, title: 'Savinar', tags: ['Образование', 'SMM'], text: 'Лендинг курса по продвижению', img: W + 'savinar-tariffs.webp', href: 'https://savinarv.tilda.ws/' },
     { row: 2, title: 'GF Gift', tags: ['Еда'], text: 'Подарочные сертификаты с корзиной', img: W + 'gfgift.webp', href: 'https://gf-gift.ru/#podari' },
     { row: 2, title: 'Growfood', tags: ['Еда'], text: 'Плейлист к приёмам пищи', img: W + 'gfmusic.webp', href: 'https://gfmusic.tilda.ws/#rec943861591' },
-    { row: 2, title: 'Yandex Pet Day', tags: ['Мероприятие'], text: 'Лендинг конференции под ключ', img: W + 'yandex-pet-day.webp', href: 'https://elenasamanchuk.github.io/yandex-pet-day/' },
+    { row: 2, title: 'Yandex Pet Day', tags: ['Мероприятие'], text: 'Лендинг конференции под ключ', img: W + 'yandex-pet-day-app.webp', href: 'https://elenasamanchuk.github.io/yandex-pet-day/' },
     { row: 2, title: 'HTML5-баннеры', tags: ['Реклама'], text: 'Анимированные баннеры для акций', img: W + 'html5-collage.webp', href: 'https://elenasamanchuk.github.io/html5-banners-vitrina/' },
     { row: 2, title: 'KnowEmbed', tags: ['ИИ', 'SaaS'], text: 'Конструктор ИИ-чат-ботов', img: W + 'knowembed-chat.webp', href: 'https://elenasamanchuk.github.io/knowembed/' },
-    { row: 2, title: 'Still store', tags: ['Магазин'], text: 'Демо интернет-магазина', img: W + 'still-store.webp', href: 'https://elenasamanchuk.github.io/still-store/' },
+    { row: 2, title: 'Still store', tags: ['Магазин'], text: 'Демо интернет-магазина', img: W + 'still-store-catalog.webp', href: 'https://elenasamanchuk.github.io/still-store/' },
     { row: 2, title: 'HR-витрина', tags: ['Вакансии'], text: 'Найм менеджеров продаж', img: W + 'hr-hero.webp', href: 'https://sales-manager-chat.tilda.ws/' },
     { row: 2, title: 'ZERO // Пробуждение', tags: ['Ивент'], text: 'Лендинг премьеры персонажа', img: W + 'zero.webp', href: 'https://elenasamanchuk.github.io/zero-awakening/' }
   ];
@@ -289,8 +289,8 @@
 
     {
       id: 'brand', part: 1,
-      title: 'Фирменный стиль',
-      intro: 'Логотип, цвета и стиль, который вам близок',
+      title: 'Стиль и материалы',
+      intro: 'Логотип, стиль, который вам близок, и что уже есть для сайта: тексты и фото',
       fields: [
         {
           id: 'ct_logo', type: 'matrix', mode: 'radio', label: 'Логотип',
@@ -313,14 +313,6 @@
           id: 'd_style', type: 'styleboard', label: 'Какие стили нравятся, а какие точно нет',
           hint: 'Это схемы, а не готовый дизайн: смотрите на цвета, воздух, шрифты и настроение. Отметьте «Нравится» или «Не моё» хотя бы у нескольких'
         },
-      ]
-    },
-
-    {
-      id: 'materials', part: 1,
-      title: 'Тексты и картинки',
-      intro: 'Что уже есть — от этого больше всего зависят сроки и объём работы',
-      fields: [
         {
           id: 'ct_texts', type: 'radio', label: 'Тексты для сайта',
           hint: 'О компании, описания блюд, услуг или товаров, условия доставки и брони',

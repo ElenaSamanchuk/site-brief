@@ -128,14 +128,11 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
     { name: 'logo.png', mimeType: 'image/png', buffer: Buffer.alloc(300000, 65) },
     { name: 'меню.csv', mimeType: 'text/csv', buffer: Buffer.from('блюдо;цена\nборщ;4.5') }
   ]);
-  await shot(page, n + '-06-brand', true);
-  await next(page);
-  assert((await current(page)) === 'sec-materials', 'в главном — шаг «Тексты и картинки»');
   await pick(page, 'ct_texts', 'partial');
   await pick(page, 'ct_images', 'some');
   await pick(page, 'ai_gen', 'site');
   await pick(page, 'ai_gen', 'ads');
-  await shot(page, n + '-06b-materials', true);
+  await shot(page, n + '-06-brand', true);
   await next(page);
   await pick(page, 'g_priority', 'balance');
   await pick(page, 'g_deadline', 'month');
