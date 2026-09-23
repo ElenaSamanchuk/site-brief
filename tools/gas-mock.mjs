@@ -84,7 +84,8 @@ function makeContext(dir) {
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: (s) => ({ body: s, setMimeType() { return this; } }) },
   };
   vm.createContext(ctx);
-  for (const f of ['Proposal.gs', 'Code.gs']) vm.runInContext(fs.readFileSync(path.join(root, 'apps-script', f), 'utf8'), ctx, { filename: f });
+  const gs = (fs.existsSync(path.join(root, 'apps-script', 'Rates.local.gs')) ? ['Rates.local.gs'] : []).concat(['Proposal.gs', 'Code.gs']);
+  for (const f of gs) vm.runInContext(fs.readFileSync(path.join(root, 'apps-script', f), 'utf8'), ctx, { filename: f });
   return { ctx, log, write };
 }
 

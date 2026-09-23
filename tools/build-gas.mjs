@@ -9,7 +9,8 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const dir = path.join(root, 'apps-script');
 const secretsFile = path.join(dir, 'secrets.local.json');
 const secrets = fs.existsSync(secretsFile) ? JSON.parse(fs.readFileSync(secretsFile, 'utf8')) : null;
-const code = ['Proposal.gs', 'Code.gs'].map((f) => `/* ═════ ${f} ═════ */\n` + fs.readFileSync(path.join(dir, f), 'utf8')).join('\n\n');
+const files = (fs.existsSync(path.join(dir, 'Rates.local.gs')) ? ['Rates.local.gs'] : []).concat(['Proposal.gs', 'Code.gs']);
+const code = files.map((f) => `/* ═════ ${f} ═════ */\n` + fs.readFileSync(path.join(dir, f), 'utf8')).join('\n\n');
 const setup = secrets
   ? `/** 1. Запустите один раз: сохранит настройки, пришлёт тест в Telegram и на почту, попросит доступы */
 function setup() {

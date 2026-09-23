@@ -4,3 +4,4 @@ tools/out/
 apps-script/dist/
 apps-script/secrets.local.json
 node_modules/
+apps-script/Rates.local.gs

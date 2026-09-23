@@ -1012,8 +1012,9 @@
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   }
-  function offerDownload(c, prefix) {
-    showStatus('error', prefix + ' Ответы не потерялись: попробуйте ещё раз или <button type="button" class="link-btn" id="dl-now">скачайте их файлом</button> и пришлите в <a href="' + esc(DEV.telegram) + '" target="_blank" rel="noopener">Telegram</a>');
+  // клиенту — без технических подробностей: только что делать дальше
+  function offerDownload(c) {
+    showStatus('error', 'Не получилось отправить. Проверьте интернет и нажмите «Отправить бриф» ещё раз — ответы сохранены. Если снова не выйдет, <button type="button" class="link-btn" id="dl-now">скачайте ответы файлом</button> и пришлите мне в <a href="' + esc(DEV.telegram) + '" target="_blank" rel="noopener">Telegram</a>');
     document.getElementById('dl-now').onclick = function () { download(c); };
   }
 
@@ -1038,7 +1039,7 @@
       return;
     }
     var url = endpoint();
-    if (!url) { offerDownload(c, 'Отправка ещё не подключена.'); return; }
+    if (!url) { console.error('Бриф: не задан адрес отправки (config.js → endpoint)'); offerDownload(c); return; }
     submitBtn.disabled = true;
     var totalSize = totalFiles();
     showStatus('info', totalSize > 2 * 1024 * 1024 ? 'Отправляем ответы и файлы (' + fmtSize(totalSize) + ') — это может занять минуту…' : 'Отправляем…');
@@ -1073,7 +1074,8 @@
       done(c);
     } catch (err) {
       submitBtn.disabled = false;
-      offerDownload(c, 'Не получилось отправить' + (err && err.name === 'AbortError' ? ' — слишком долго.' : ' (' + esc(err.message || err) + ').'));
+      console.error('Бриф: ошибка отправки', err);
+      offerDownload(c);
     }
   }
 
