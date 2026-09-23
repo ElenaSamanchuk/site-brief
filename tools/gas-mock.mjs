@@ -115,9 +115,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
     if (req.method !== 'POST') {
-      const status = new URL(req.url, 'http://x').searchParams.get('status');
-      const out = makeContext(path.join(OUT, '_get')).ctx.doGet({ parameter: status ? { status } : {} });
-      if (status) console.log('status?', status, '→', out.body);
+      const params = Object.fromEntries(new URL(req.url, 'http://x').searchParams);
+      const out = makeContext(path.join(OUT, '_get')).ctx.doGet({ parameter: params });
+      if (params.status || params.chat) console.log('get?', JSON.stringify(params), '→', out.body);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(out.body);
     }

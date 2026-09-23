@@ -8,6 +8,8 @@
  *   FORM_KEY         то же слово, что formKey в config.js сайта
  *   DRIVE_FOLDER_ID  (необязательно) id папки для брифов; иначе создастся «Брифы — сайты» в корне Диска
  *   SHEET_ID         (необязательно) id Google-таблицы — журнал заявок
+ *   GROQ_API_KEY     (необязательно) ключ https://console.groq.com/keys — чат-помощник на странице отвечает с ИИ;
+ *                    без ключа отвечает готовыми ответами на частые вопросы. Вопросы в любом случае приходят в Telegram
  */
 var TZ = 'Europe/Minsk';
 var ROOT_FOLDER_NAME = 'Брифы — сайты';
@@ -20,6 +22,12 @@ var MONTHS = ['января', 'февраля', 'марта', 'апреля', '�
 function doGet(e) {
   // страница спрашивает «дошёл ли бриф», если ответ на отправку потерялся по дороге
   var id = sid_(e && e.parameter && e.parameter.status);
+  var chatSid = sid_(e && e.parameter && e.parameter.chat);
+  if (chatSid) {
+    var cc = cache_();
+    var a = cc ? cc.get('chat-a:' + chatSid + ':' + String(e.parameter.n || '').replace(/\D/g, '')) : null;
+    return json_({ ok: true, answer: a || null });
+  }
   if (id) {
     var c = cache_();
     var detail = c ? c.get('brief-d:' + id) : null;
@@ -38,6 +46,7 @@ function doPost(e) {
   if (data.hp) return json_({ ok: true }); // скрытое поле заполнил бот
   var P = props_();
   if (P.FORM_KEY && data.key !== P.FORM_KEY) return json_({ ok: false, error: 'Неверный ключ формы' });
+  if (data.type === 'chat') return json_(chat_(data, P));
 
   // Google иногда теряет ответ по дороге к странице, и она отправляет бриф ещё раз с тем же номером — не дублируем
   var sid = sid_(data.id), cache = cache_();
@@ -184,6 +193,99 @@ function doPost(e) {
     } catch (err) { }
   }
   return json_(ok ? { ok: true } : { ok: false, error: 'Не удалось доставить: ' + res.errors.join('; ') });
+}
+
+/* ───────── чат-помощник на странице брифа ───────── */
+
+var CHAT_LIMIT_SESSION = 20;  // сообщений в час от одного посетителя
+var CHAT_LIMIT_DAY = 150;     // всего за сутки — защита от спама в Telegram и квоты ИИ
+
+var CHAT_FACTS = [
+  'Елена Саманчук делает сайты на Tilda и кодом: лендинги, многостраничные сайты, каталоги с заявкой, интернет-магазины, онлайн-запись и бронь, игровые механики, акции и промокоды',
+  'Как идёт работа: бриф (главное — 10–15 минут) → предложение за 1–2 дня: структура, этапы, сроки → прототип → дизайн → разработка и проверка на iPhone и Android → запуск: домен, аналитика, заявки в Telegram',
+  'В каждый сайт входит: адаптив под телефоны, быстрая загрузка, SEO-база, аналитика и цели, защита форм от спама, проверка в разных браузерах, инструкция по управлению',
+  'Тильда или код: Тильда — если сами часто меняете тексты, цены и фото без разработчика; код — если нужны особые механики, скорость и полная свобода. Можно выбрать в брифе «Посоветуйте»',
+  'Поддержка после запуска — отдельная услуга: продление домена и хостинга, обновление меню и каталога, технические задачи; ежемесячно или разово по задаче',
+  'Сроки: простой лендинг обычно 2–3 недели, сайт с меню, бронью и заказами — 1–2 месяца. Сильнее всего сроки зависят от готовности текстов и фото. Точные сроки — в предложении',
+  'Материалы: логотип, фото, меню или прайс, тексты. Если чего-то нет — Елена поможет: тексты, съёмка, оцифровка меню, изображения для фонов',
+  'Бриф: обязательны только имя и телефон; если сомневаетесь — вариант «Не знаю / обсудим»; ответы сохраняются в браузере, можно вернуться позже; файлы до 20 МБ, большие — ссылкой на Диск',
+  'Домен, доступы и права на сайт — у клиента; исправление ошибок 30 дней после запуска — бесплатно',
+  'Связь с Еленой: Telegram @ElaneDmitrievna; портфолио — elenasamanchuk.github.io/portfolio-neon'
+];
+
+var CHAT_FAQ = [
+  [/срок|долго|быстр|когда\s+будет|недел|месяц|сколько\s+времени/i, 5],
+  [/тильд|tilda|конструктор|\bкод/i, 3],
+  [/поддерж|сопровожд|хостинг|продлен|после\s+запуска/i, 4],
+  [/матери|фото|текст|логотип|меню|прайс|съёмк|съемк/i, 6],
+  [/обязательн|пропуст|не\s+знаю|сохран|вернут|файл/i, 7],
+  [/пример|портфолио|работ[ыа]/i, 9],
+  [/входит|включ|адаптив|seo|сео|аналитик/i, 2],
+  [/этап|процесс|как\s+(вы\s+)?работ|что\s+дальше|после\s+брифа/i, 1]
+];
+
+function chat_(data, P) {
+  var sid = sid_(data.sid), n = String(data.n || '').replace(/\D/g, '').slice(0, 5);
+  var text = String(data.text || '').trim().slice(0, 600);
+  if (!sid || !n || !text) return { ok: false, error: 'Пустое сообщение' };
+  var cache = cache_();
+  var day = Utilities.formatDate(new Date(), TZ, 'yyyyMMdd');
+  var perSession = cache ? Number(cache.get('chat-n:' + sid) || 0) : 0;
+  var perDay = cache ? Number(cache.get('chat-day:' + day) || 0) : 0;
+  if (perSession >= CHAT_LIMIT_SESSION || perDay >= CHAT_LIMIT_DAY) {
+    return { ok: true, answer: 'Спасибо! Сейчас много вопросов — напишите, пожалуйста, Елене в Telegram @ElaneDmitrievna, она ответит лично' };
+  }
+  if (cache) { cache.put('chat-n:' + sid, String(perSession + 1), 3600); cache.put('chat-day:' + day, String(perDay + 1), 86400); }
+
+  var answer = '', viaAi = false;
+  if (P.GROQ_API_KEY) {
+    try { answer = chatAi_(data, text, P.GROQ_API_KEY); viaAi = !!answer; } catch (err) { console.warn('ИИ не ответил: ' + err); }
+  }
+  if (!answer) answer = chatFaq_(text);
+  if (cache) cache.put('chat-a:' + sid + ':' + n, answer, 900);
+
+  // вопрос и ответ — Елене в тот же чат, что и брифы
+  if (P.TG_TOKEN && P.TG_CHAT_ID) {
+    var c = data.contact || {};
+    var who = [c.name, c.phone, c.messenger].filter(function (x) { return x; }).join(' · ');
+    var head = '💬 <b>Вопрос на странице брифа</b> · #chat #s' + sid.slice(0, 6) + (data.tag ? ' · #' + esc_(String(data.tag).replace(/[^\wа-яё]/gi, '_')) : '');
+    var msg = head + '\n' + (who ? '👤 ' + esc_(who) + '\n' : '') + (data.step ? '📍 Шаг: ' + esc_(String(data.step).slice(0, 80)) + '\n' : '') +
+      '\n❓ ' + esc_(text) + '\n\n🤖 ' + esc_(answer) + (viaAi ? '' : '\n<i>(готовый ответ — ИИ не подключён)</i>');
+    P.TG_CHAT_ID.split(',').map(trim_).filter(String).forEach(function (chat) {
+      try { tgText_(P.TG_TOKEN, chat, msg); } catch (err) { console.warn('Чат → Telegram: ' + err); }
+    });
+  }
+  return { ok: true, answer: answer };
+}
+
+function chatFaq_(text) {
+  for (var i = 0; i < CHAT_FAQ.length; i++) {
+    if (CHAT_FAQ[i][0].test(text)) return CHAT_FACTS[CHAT_FAQ[i][1]] + '. Если нужно подробнее — Елена ответит лично';
+  }
+  if (/цен|стоим|стоит|бюджет|дорог|дёшев|дешев|оплат|₽|byn|руб/i.test(text)) {
+    return 'Стоимость Елена посчитает по ответам брифа и предложит варианты под ваш бюджет — поэтому в брифе есть вопрос про бюджет. Можно отметить ориентир или «Пока не знаю»';
+  }
+  return 'Спасибо за вопрос! Передала его Елене — она ответит лично в Telegram или по телефону из брифа. А пока можно продолжать — ответы сохраняются';
+}
+
+function chatAi_(data, text, key) {
+  var system = 'Ты — помощник Елены Саманчук на странице брифа на разработку сайта. Отвечай по-русски, дружелюбно и коротко: 1–4 предложения, без markdown и списков со звёздочками. ' +
+    'Помогай заполнить бриф и отвечай на вопросы о работе, опираясь только на факты ниже. Никогда не называй цены и суммы — скажи, что стоимость Елена посчитает по брифу и предложит варианты под бюджет. ' +
+    'Если ответа нет в фактах — не выдумывай: скажи, что передал вопрос Елене и она ответит лично. Не обещай скидок и сроков сверх фактов.\n\nФакты:\n- ' + CHAT_FACTS.join('\n- ') +
+    (data.step ? '\n\nСейчас человек на шаге брифа: ' + String(data.step).slice(0, 80) : '');
+  var messages = [{ role: 'system', content: system }];
+  (data.history || []).slice(-6).forEach(function (m) {
+    if (m && (m.role === 'user' || m.role === 'assistant') && m.text) messages.push({ role: m.role, content: String(m.text).slice(0, 600) });
+  });
+  messages.push({ role: 'user', content: text });
+  var r = UrlFetchApp.fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Bearer ' + key },
+    payload: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: messages, temperature: 0.3, max_tokens: 320 })
+  });
+  if (r.getResponseCode() !== 200) throw new Error('Groq ' + r.getResponseCode() + ': ' + r.getContentText().slice(0, 200));
+  var j = JSON.parse(r.getContentText());
+  return String(((j.choices || [])[0] || {}).message ? j.choices[0].message.content : '').trim().replace(/\*\*/g, '').slice(0, 900);
 }
 
 /* ───────── тексты уведомлений ───────── */
