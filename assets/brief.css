@@ -262,7 +262,7 @@ body, .sec, .topbar, .submit-area, .opt-body, .inp { transition: background-colo
 .promo-play svg { width: 26px; height: 26px; margin-left: 4px; fill: #1d1d1f; }
 .promo-video.is-paused .promo-play { display: grid; }
 @media (max-width: 900px) { .promo { grid-template-columns: 1fr; gap: 20px; padding: 20px; border-radius: 24px; } .promo-copy p { margin-bottom: 16px; } }
-@media (max-width: 640px) { .promo-copy .btn { width: 100%; } }
+@media (max-width: 640px) { .promo-copy .btn { width: 100%; } .promo-video.is-vertical { aspect-ratio: 9 / 16; width: 100%; max-width: 420px; justify-self: center; } }
 
 /* ═════════════ чат-помощник ═════════════ */
 .chat-launch { position: fixed; right: 24px; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 65; display: inline-flex; align-items: center; gap: 11px; padding: 7px 18px 7px 7px; border: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-radius: 99px; background: color-mix(in srgb, var(--surface) 82%, transparent); -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px); color: var(--ink); font: inherit; text-align: left; box-shadow: 0 12px 34px rgba(20, 30, 70, .18), 0 2px 6px rgba(20, 30, 70, .08); cursor: pointer; transition: transform .25s var(--ease), box-shadow .25s; }

@@ -1343,6 +1343,14 @@
     var box = document.getElementById('promo-video');
     if (!box) return;
     var v = box.querySelector('video'), btn = box.querySelector('.promo-play');
+    // на телефоне — вертикальная версия ролика, как сторис
+    if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches && v.getAttribute('data-vertical-src')) {
+      box.classList.add('is-vertical');
+      v.poster = v.getAttribute('data-vertical-poster');
+      Array.prototype.slice.call(v.querySelectorAll('source')).forEach(function (s) { s.remove(); });
+      v.src = v.getAttribute('data-vertical-src');
+      v.load();
+    }
     function play() { var p = v.play(); if (p && p.catch) p.catch(function () { box.classList.add('is-paused'); }); }
     btn.addEventListener('click', function () { box.classList.remove('is-paused'); v.controls = true; play(); });
     if (reduceMotion || !('IntersectionObserver' in window)) { box.classList.add('is-paused'); return; }
