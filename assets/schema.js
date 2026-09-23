@@ -20,7 +20,7 @@
     name: 'Елена Саманчук',
     role: 'разработка сайтов',
     telegram: 'https://t.me/ElaneDmitrievna',
-    portfolio: 'https://elenasamanchuk.github.io/elena-samanchuk/'
+    portfolio: 'https://elenasamanchuk.github.io/portfolio-neon/'
   };
 
   // Бегущая строка «Мои работы»: row 1 — сайты и школы, row 2 — механики, промо и приложения

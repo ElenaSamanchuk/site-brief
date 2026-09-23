@@ -10,7 +10,7 @@ var KP = {
   dev: {
     name: 'Елена Саманчук',
     telegram: '@ElaneDmitrievna',
-    site: 'https://elenasamanchuk.github.io/elena-samanchuk/'
+    site: 'https://elenasamanchuk.github.io/portfolio-neon/'
   },
   partnerDiscount: 0,
   budgets: { b300: 300, b600: 600, b1000: 1000, b2000: 2000, bmore: Infinity },
