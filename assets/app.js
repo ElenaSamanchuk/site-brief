@@ -1053,6 +1053,7 @@
       }
       var payload = {
         v: 2,
+        id: submitId(),
         hp: (form.querySelector('.hp') || {}).value || '',
         key: CFG.formKey || '',
         meta: { submittedAt: new Date().toISOString(), page: location.href, ua: navigator.userAgent, secondsSpent: Math.round((Date.now() - startedAt) / 1000), labels: c.labels, brands: c.brands, tag: tag },
@@ -1063,20 +1064,68 @@
         reportBody: reportBody(c),
         files: list
       };
-      var ctrl = new AbortController();
-      var timer = setTimeout(function () { ctrl.abort(); }, 240000);
-      var res = await fetch(url, { method: 'POST', body: JSON.stringify(payload), signal: ctrl.signal, redirect: 'follow' });
-      clearTimeout(timer);
-      var data = await res.json().catch(function () { return {}; });
-      if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      await deliver(url, JSON.stringify(payload), payload.id);
       sent = true;
       clearDraft();
+      try { localStorage.removeItem(SUBMIT_ID_KEY); } catch (e) { }
       done(c);
     } catch (err) {
       submitBtn.disabled = false;
       console.error('Бриф: ошибка отправки', err);
       offerDownload(c);
     }
+  }
+
+  /* Google Apps Script отвечает через переадресацию, и ответ иногда теряется по дороге, хотя бриф уже дошёл.
+     Поэтому у отправки есть номер: если ответа нет — спрашиваем сервер, дошло ли, и только потом отправляем ещё раз
+     (сервер повтор с тем же номером не дублирует) */
+  var SUBMIT_ID_KEY = 'site-brief-submit-id';
+  function submitId() {
+    var id = '';
+    try { id = localStorage.getItem(SUBMIT_ID_KEY) || ''; } catch (e) { }
+    if (!id) {
+      id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+      try { localStorage.setItem(SUBMIT_ID_KEY, id); } catch (e) { }
+    }
+    return id;
+  }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  async function postOnce(url, body) {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 240000);
+    try {
+      var res = await fetch(url, { method: 'POST', body: body, signal: ctrl.signal, redirect: 'follow' });
+      var data = await res.json().catch(function () { return null; });
+      if (data && data.ok) return 'ok';
+      if (data && data.ok === false) { var e = new Error(data.error || 'Сервер не принял бриф'); e.fatal = true; throw e; }
+      return 'lost';
+    } catch (err) {
+      if (err.fatal) throw err;
+      console.warn('Бриф: ответ на отправку не получен', err);
+      return 'lost';
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  async function arrived(url, id) {
+    for (var i = 0; i < 6; i++) {
+      await wait(i ? 2500 : 800);
+      try {
+        var res = await fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'status=' + encodeURIComponent(id), { cache: 'no-store' });
+        var j = await res.json();
+        if (j.state === 'done' || j.state === 'processing') return true;
+        if (j.state === 'unknown' || j.state === 'failed') return false;
+      } catch (e) { /* и этот ответ мог потеряться — спросим ещё */ }
+    }
+    return false;
+  }
+  async function deliver(url, body, id) {
+    for (var attempt = 0; attempt < 3; attempt++) {
+      if (attempt) showStatus('info', 'Проверяем, что всё дошло…');
+      if (await postOnce(url, body) === 'ok') return;
+      if (await arrived(url, id)) return;
+    }
+    throw new Error('Бриф не дошёл после трёх попыток');
   }
 
   function done(c) {

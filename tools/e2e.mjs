@@ -13,6 +13,8 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const shots = path.join(root, 'tools', 'out', 'shots-' + BROWSER);
 fs.mkdirSync(shots, { recursive: true });
 const URL = process.env.BRIEF_URL || 'http://localhost:5601/?endpoint=http://localhost:8787&tag=test';
+const REAL = process.env.REAL_FILES || '';
+const realFiles = (re) => fs.readdirSync(REAL).filter((f) => re.test(f.normalize('NFC'))).map((f) => path.join(REAL, f));
 
 const browser = await engine.launch();
 const errors = [];
@@ -121,7 +123,8 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await page.waitForTimeout(300);
   const pvBg = await page.$eval('#pv-side-mount .pv', (el) => el.style.getPropertyValue('--pv-bg'));
   assert(pvBg === '#f7efe6', 'макет перекрасился в понравившийся тёплый стиль: ' + pvBg);
-  await page.setInputFiles('#in-ct_files', [
+  // REAL_FILES=папка — живой прогон с настоящими файлами (логотип, меню PDF, фото, Word, Excel, референс)
+  await page.setInputFiles('#in-ct_files', REAL ? realFiles(/Логотип|Меню|Интерьер/) : [
     { name: 'logo.png', mimeType: 'image/png', buffer: Buffer.alloc(300000, 65) },
     { name: 'меню.csv', mimeType: 'text/csv', buffer: Buffer.from('блюдо;цена\nборщ;4.5') }
   ]);
@@ -164,9 +167,11 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   assert((await current(page)) === 'sec-content', 'заказ через агрегаторы — шаг «Заказ» пропущен');
   await pick(page, 'ct_ready', 'help');
   await pick(page, 'ct_texts', 'partial');
+  if (REAL) await page.setInputFiles('#in-ct_files2', realFiles(/Тексты|Прайс/));
   await next(page);
   assert((await current(page)) === 'sec-voice', 'шаг «Голос и история»');
   await next(page);
+  if (REAL) await page.setInputFiles('#in-d_files', realFiles(/Референс/));
   await shot(page, n + '-11-design', true);
   await next(page);
   console.log('   шаг:', await current(page));
@@ -184,7 +189,7 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await page.check('#consent');
   await shot(page, n + '-12-finish');
   await page.click('#submit-btn');
-  await page.waitForSelector('#thanks, .status-error', { timeout: 60000 });
+  await page.waitForSelector('#thanks, .status-error', { timeout: REAL ? 300000 : 60000 });
   if (!(await page.$('#thanks'))) {
     await page.screenshot({ path: path.join(shots, n + '-13-error.png') });
     throw new Error('Отправка не прошла: ' + (await page.textContent('#submit-status')));
@@ -192,6 +197,8 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await shot(page, n + '-13-thanks');
   console.log('✓ desktop: бриф отправлен');
 });
+
+if (REAL) { console.log('Живой прогон: бриф с файлами отправлен на настоящий скрипт'); process.exit(0); }
 
 for (const w of [360, 390, 768, 1024, 1280, 1440]) {
   await run({ width: w, height: w < 800 ? 800 : 900 }, 'w' + w, async (page, n) => {

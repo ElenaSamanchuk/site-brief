@@ -14,7 +14,12 @@ var ROOT_FOLDER_NAME = 'Брифы — сайты';
 var MAIL_ATTACH_LIMIT = 18 * 1024 * 1024;
 var TG_FILE_LIMIT = 45 * 1024 * 1024;
 
-function doGet() {
+var SEEN_TTL = 6 * 60 * 60; // сколько помнить номер отправки, сек
+
+function doGet(e) {
+  // страница спрашивает «дошёл ли бриф», если ответ на отправку потерялся по дороге
+  var id = sid_(e && e.parameter && e.parameter.status);
+  if (id) return json_({ ok: true, state: CacheService.getScriptCache().get('brief:' + id) || 'unknown' });
   return json_({ ok: true, service: 'site-brief' });
 }
 
@@ -28,6 +33,20 @@ function doPost(e) {
   if (data.hp) return json_({ ok: true }); // скрытое поле заполнил бот
   var P = props_();
   if (P.FORM_KEY && data.key !== P.FORM_KEY) return json_({ ok: false, error: 'Неверный ключ формы' });
+
+  // Google иногда теряет ответ по дороге к странице, и она отправляет бриф ещё раз с тем же номером — не дублируем
+  var sid = sid_(data.id), cache = CacheService.getScriptCache();
+  if (sid) {
+    var lock = LockService.getScriptLock(), seen = null;
+    var locked = lock.tryLock(5000);
+    try {
+      seen = cache.get('brief:' + sid);
+      if (!seen || seen === 'failed') cache.put('brief:' + sid, 'processing', SEEN_TTL);
+    } finally {
+      if (locked) lock.releaseLock();
+    }
+    if (seen && seen !== 'failed') return json_({ ok: true, repeat: true });
+  }
 
   var s = data.summary || {};
   var who = s.company || s.name || 'без имени';
@@ -142,6 +161,7 @@ function doPost(e) {
       });
     } catch (err) { /* уже сообщили, что могли */ }
   }
+  if (sid) cache.put('brief:' + sid, ok ? 'done' : 'failed', SEEN_TTL);
   return json_(ok ? { ok: true } : { ok: false, error: 'Не удалось доставить: ' + res.errors.join('; ') });
 }
 
@@ -249,6 +269,8 @@ function esc_(s) {
 }
 
 function trim_(s) { return String(s == null ? '' : s).trim(); }
+
+function sid_(s) { return String(s == null ? '' : s).replace(/[^\w-]/g, '').slice(0, 64); }
 
 function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);

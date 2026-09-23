@@ -10,6 +10,11 @@ import { fileURLToPath } from 'node:url';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PORT = Number(process.argv[2] || 8787);
 const OUT = path.join(root, 'tools', 'out');
+// LOSE=2 — первые 2 ответа на отправку «теряются» (как иногда у Google): бриф обработан, а страница ответа не видит
+let lose = Number(process.env.LOSE || 0);
+const cacheStore = new Map();
+const CacheService = { getScriptCache: () => ({ get: (k) => cacheStore.get(k) ?? null, put: (k, v) => { cacheStore.set(k, v); } }) };
+const LockService = { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => { } }) };
 
 function makeContext(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -80,6 +85,7 @@ function makeContext(dir) {
         return { getContentText: () => '{"ok":true,"result":[]}', getResponseCode: () => 200 };
       },
     },
+    CacheService, LockService,
     SpreadsheetApp: { openById: () => ({ getSheets: () => [{ getLastRow: () => 0, appendRow: (r) => log.push('sheet ' + r.join(' | ')) }] }) },
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: (s) => ({ body: s, setMimeType() { return this; } }) },
   };
@@ -100,7 +106,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
-    if (req.method !== 'POST') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end('{"ok":true,"mock":true}'); }
+    if (req.method !== 'POST') {
+      const status = new URL(req.url, 'http://x').searchParams.get('status');
+      const out = makeContext(path.join(OUT, '_get')).ctx.doGet({ parameter: status ? { status } : {} });
+      if (status) console.log('status?', status, '→', out.body);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(out.body);
+    }
     const chunks = [];
     req.on('data', (c) => chunks.push(c));
     req.on('end', () => {
@@ -111,6 +123,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         fs.writeFileSync(path.join(dir, 'request.json'), body);
         const result = runOnce(body, dir);
         console.log('→', dir, JSON.stringify(result));
+        if (lose > 0) {
+          lose--;
+          console.log('   (ответ «потерян» — как у Google)');
+          res.removeHeader('Access-Control-Allow-Origin');
+          res.writeHead(404, { 'Content-Type': 'text/html' });
+          return res.end('<html>Seite nicht gefunden</html>');
+        }
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (err) {

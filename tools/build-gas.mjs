@@ -32,3 +32,13 @@ ${code}
 fs.mkdirSync(path.join(dir, 'dist'), { recursive: true });
 fs.writeFileSync(path.join(dir, 'dist', 'paste-into-google.gs'), out);
 console.log('Готово: apps-script/dist/paste-into-google.gs' + (secrets ? ' (с настройками)' : ' (без настроек)'));
+// Для обновления уже подключённого скрипта: только код, без токена — настройки уже сохранены в свойствах скрипта
+fs.writeFileSync(path.join(dir, 'dist', 'update-code.gs'), `/*
+  Бриф на сайт — серверная часть (обновление). Настройки (токен бота, chat id, почта, ключ формы) уже сохранены
+  в свойствах скрипта, поэтому здесь их нет. После вставки: «Развернуть → Управление развёртываниями → ✏️ →
+  Версия: новая → Развернуть». Адрес …/exec не меняется
+*/
+
+${code}
+`);
+console.log('Готово: apps-script/dist/update-code.gs (без токена — для обновления)');
