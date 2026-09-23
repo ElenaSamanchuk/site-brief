@@ -30,11 +30,13 @@ async function run(viewport, name, fn) {
     const theme = await page.getAttribute('html', 'data-theme');
     assert(theme === 'light', 'по умолчанию светлая тема');
     const cards = await page.locator('.mq-row .work:not([aria-hidden])').count();
-    assert(cards >= 30, 'в бегущей строке все проекты: ' + cards);
+    assert(cards === 24, 'в бегущей строке все проекты: ' + cards);
     const x1 = await page.$eval('.mq-track', (t) => t.style.transform);
     await page.waitForTimeout(700);
     const x2 = await page.$eval('.mq-track', (t) => t.style.transform);
     assert(x1 !== x2, 'строка едет: ' + x1 + ' → ' + x2);
+    const selfLinks = await page.$$eval('a[href^="http"]', (as) => as.filter((a) => a.target !== '_blank').map((a) => a.href));
+    assert(selfLinks.length === 0, 'все внешние ссылки открываются в новой вкладке' + (selfLinks.length ? ': ' + selfLinks.join(', ') : ''));
     await page.locator('.works-wrap').scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
     await page.screenshot({ path: path.join(shots, name + '-00-works.png') });
@@ -113,6 +115,12 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await pick(page, 'ct_logo::b1', 'raster');
   await pick(page, 'ct_logo::b2', 'vector');
   await pick(page, 'ct_brandbook', 'basic');
+  await pick(page, 'd_style::warm', 'yes');
+  await pick(page, 'd_style::folk', 'yes');
+  await pick(page, 'd_style::dark', 'no');
+  await page.waitForTimeout(300);
+  const pvBg = await page.$eval('#pv-side-mount .pv', (el) => el.style.getPropertyValue('--pv-bg'));
+  assert(pvBg === '#f7efe6', 'макет перекрасился в понравившийся тёплый стиль: ' + pvBg);
   await page.setInputFiles('#in-ct_files', [
     { name: 'logo.png', mimeType: 'image/png', buffer: Buffer.alloc(300000, 65) },
     { name: 'меню.csv', mimeType: 'text/csv', buffer: Buffer.from('блюдо;цена\nборщ;4.5') }
@@ -154,10 +162,11 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await page.fill('#in-bk_what', 'Столики и банкетный зал');
   await next(page);
   assert((await current(page)) === 'sec-content', 'заказ через агрегаторы — шаг «Заказ» пропущен');
+  await pick(page, 'ct_ready', 'help');
   await pick(page, 'ct_texts', 'partial');
   await next(page);
-  await pick(page, 'd_style', 'photo');
-  await pick(page, 'd_style', 'warm');
+  assert((await current(page)) === 'sec-voice', 'шаг «Голос и история»');
+  await next(page);
   await shot(page, n + '-11-design', true);
   await next(page);
   console.log('   шаг:', await current(page));
@@ -170,6 +179,8 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await next(page);
   await next(page);
   assert((await current(page)) === 'sec-finish', 'в конце — экран отправки');
+  const selfLinks2 = await page.$$eval('a[href^="http"]', (as) => as.filter((a) => a.target !== '_blank').map((a) => a.href));
+  assert(selfLinks2.length === 0, 'и в вопросах внешние ссылки — в новой вкладке');
   await page.check('#consent');
   await shot(page, n + '-12-finish');
   await page.click('#submit-btn');

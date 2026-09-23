@@ -30,14 +30,18 @@
 
   var THEMES = {
     light: { label: 'Светлый', bg: '#ffffff', surface: '#f5f5f7', ink: '#1d1d1f', muted: '#6e6e73', line: 'rgba(0,0,0,.08)' },
-    bright: { label: 'Яркий', bg: '#10301f', surface: '#18402b', ink: '#f3ffe9', muted: '#b9d6c4', line: 'rgba(255,255,255,.12)', accent: '#a3e635' },
-    brandcolor: { label: 'Смелые цвета', bg: '#fffdf5', surface: '#f1ecff', ink: '#1f1147', muted: '#6b5f93', line: 'rgba(31,17,71,.1)', accent: '#6d28d9' },
-    warm: { label: 'Тёплый', bg: '#fbf6f1', surface: '#f3e8de', ink: '#3b2a22', muted: '#8a7466', line: 'rgba(59,42,34,.1)', accent: '#c96f55' },
-    natural: { label: 'Природный', bg: '#f6f3ec', surface: '#ebe6d9', ink: '#2f3325', muted: '#6f7361', line: 'rgba(47,51,37,.1)', accent: '#6b7f4e' },
-    photo: { label: 'Фото-каталог', bg: '#ffffff', surface: '#f4f4f5', ink: '#18181b', muted: '#71717a', line: 'rgba(0,0,0,.08)' },
-    business: { label: 'Деловой', bg: '#f7f9fc', surface: '#eaf0f8', ink: '#0f172a', muted: '#64748b', line: 'rgba(15,23,42,.08)', accent: '#2563eb' },
-    dark: { label: 'Тёмный', bg: '#0e0e10', surface: '#1c1c1f', ink: '#f5f5f7', muted: '#a1a1a6', line: 'rgba(255,255,255,.1)' }
+    minimal: { label: 'Минимализм', bg: '#ffffff', surface: '#f3f3f3', ink: '#111111', muted: '#7a7a7a', line: 'rgba(0,0,0,.08)', accent: '#111111' },
+    warm: { label: 'Тёплый', bg: '#f7efe6', surface: '#efe2d3', ink: '#3b2a22', muted: '#8a7466', line: 'rgba(59,42,34,.1)', accent: '#c96f55' },
+    dark: { label: 'Тёмный премиум', bg: '#0d0d0d', surface: '#1b1b1b', ink: '#f3ede2', muted: '#a39e93', line: 'rgba(255,255,255,.1)', accent: '#c9a45c' },
+    bright: { label: 'Яркий', bg: '#4b23c8', surface: '#5d36dd', ink: '#ffffff', muted: '#d7ccff', line: 'rgba(255,255,255,.14)', accent: '#ffd400' },
+    natural: { label: 'Природный', bg: '#eef0e8', surface: '#e2e6d8', ink: '#2f3325', muted: '#6f7361', line: 'rgba(47,51,37,.1)', accent: '#6b7f4e' },
+    photo: { label: 'Фото', bg: '#ffffff', surface: '#f4f4f5', ink: '#18181b', muted: '#71717a', line: 'rgba(0,0,0,.08)' },
+    business: { label: 'Деловой', bg: '#f5f8ff', surface: '#e8eefb', ink: '#0f172a', muted: '#64748b', line: 'rgba(15,23,42,.08)', accent: '#2563eb' },
+    folk: { label: 'Народный', bg: '#fffaf3', surface: '#f6ebdc', ink: '#3a1f16', muted: '#7d5b4c', line: 'rgba(58,31,22,.1)', accent: '#b3261e' },
+    playful: { label: 'Игривый', bg: '#fff5fb', surface: '#f3e8ff', ink: '#2b1b3d', muted: '#7c6a93', line: 'rgba(43,27,61,.1)', accent: '#ec4899' },
+    editorial: { label: 'Журнальный', bg: '#ffffff', surface: '#f3f3f3', ink: '#111111', muted: '#666666', line: 'rgba(0,0,0,.1)', accent: '#e03131' }
   };
+
 
   var COLORS = [
     [/бордо/i, '#9b1c31'], [/красн/i, '#e03131'], [/оранж/i, '#f08c00'], [/терракот/i, '#c8553d'], [/ж[её]лт/i, '#f2b705'], [/золот/i, '#c9a227'],
@@ -104,7 +108,10 @@
     var sphereKey = a.b_sphere && SPHERES[a.b_sphere] ? a.b_sphere : 'other';
     var S = SPHERES[sphereKey];
     var food = sphereKey === 'food';
-    var style = arr(a.d_style).filter(function (x) { return THEMES[x]; })[0] || 'light';
+    var ds = a.d_style || {};
+    if (Array.isArray(ds)) { var tmp = {}; ds.forEach(function (k) { tmp[k] = 'yes'; }); ds = tmp; }
+    var order = (window.BRIEF_STYLES || []).map(function (x) { return x.id; });
+    var style = order.filter(function (k) { return ds[k] === 'yes' && THEMES[k]; })[0] || 'light';
     var T = THEMES[style];
     var own = colorsFrom(a.ct_colors);
     var accent = own[0] && own[0] !== '#111111' ? own[0] : (T.accent || S.accent);

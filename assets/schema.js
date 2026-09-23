@@ -31,16 +31,14 @@
     { row: 1, title: 'Система Ясности', tags: ['Образование', 'Психология'], text: 'Сайт онлайн-школы психологии', img: W + 'yasnost.webp', href: 'https://sistemayasnosti.com/' },
     { row: 1, title: 'MedveDiva', tags: ['Фитнес', 'Образование'], text: 'Онлайн-фитнес-клуб', img: W + 'medvediva.webp', href: 'https://medvediva.ru/' },
     { row: 1, title: 'Форма', tags: ['Фитнес'], text: 'Сайт фитнес-эксперта', img: W + 'yourforma.webp', href: 'https://yourforma.ru/' },
-    { row: 1, title: 'Kochfit', tags: ['Фитнес'], text: 'Итоги года фитнес-клуба', img: W + 'kochfit.webp', href: 'https://kochfit.ru/year-results' },
-    { row: 1, title: 'Popovichfit', tags: ['Фитнес', 'Образование'], text: 'Мини-сайт онлайн-фитнес-клуба', img: W + 'popovichfit.webp', href: 'https://popovichfit.ru/taplink' },
+    { row: 1, title: 'Kochfit', tags: ['Фитнес', 'Образование'], text: 'Фитнес-школа женского здоровья', img: W + 'kochfit.webp', href: 'https://kochfit.ru/' },
+    { row: 1, title: 'Popovichfit', tags: ['Фитнес', 'Образование'], text: 'Онлайн-фитнес-клуб', img: W + 'popovichfit.webp', href: 'https://popovichfit.ru/' },
     { row: 1, title: 'Kinezio Fitness', tags: ['Фитнес', 'Образование'], text: 'Бесплатный модуль курса', img: W + 'kinezio.webp', href: 'https://kineziofitness.online/module-zero' },
     { row: 1, title: 'BI13', tags: ['Фотография', 'Образование'], text: 'Онлайн-школа мобильной фотографии', img: W + 'bi13.webp', href: 'https://bi13pro.ru/aestheticbi13' },
     { row: 1, title: 'Savinar', tags: ['Образование', 'SMM'], text: 'Лендинг курса по продвижению', img: W + 'savinar.webp', href: 'https://savinarv.tilda.ws/' },
     { row: 1, title: 'Nasha', tags: ['Магазин'], text: 'Интернет-магазин одежды', img: W + 'nasha.webp', href: 'https://nashashop.ru/catalog' },
     { row: 1, title: 'SmartLogic', tags: ['Магазин'], text: 'Лендинг садовой мебели', img: W + 'smartlogic.webp', href: 'https://elenasamanchuk.github.io/smartlogic-landing/' },
     { row: 1, title: 'HR-витрина', tags: ['Вакансии'], text: 'Найм менеджеров продаж', img: W + 'hr.webp', href: 'https://sales-manager-chat.tilda.ws/' },
-    { row: 1, title: 'Digital Landing Lab', tags: ['Веб-студия'], text: 'Сайт под ключ с механиками', img: W + 'dll.webp', href: 'https://elenasamanchuk.github.io/digital-landing-lab/' },
-    { row: 1, title: 'ZERO // Пробуждение', tags: ['Ивент'], text: 'Лендинг премьеры персонажа', img: W + 'zero.webp', href: 'https://elenasamanchuk.github.io/zero-awakening/' },
     { row: 2, title: 'Growfood', tags: ['Еда'], text: 'Подбор программы питания', img: W + 'gf-calc.webp', href: 'https://amb.growfood.pro/food-selection-1' },
     { row: 2, title: 'Growfood', tags: ['Еда', 'Игра'], text: 'Колесо фортуны с призами и промокодами', img: W + 'gf-wheel.webp', href: 'https://amb.growfood.pro/page79566396.html#reg' },
     { row: 2, title: 'Приём', tags: ['Еда', 'Акции'], text: 'Сезонные акции, квиз и таймер', img: W + 'priem-main.webp', href: 'https://priem.menu/?cmz=M3rW' },
@@ -50,12 +48,7 @@
     { row: 2, title: 'HTML5-баннеры', tags: ['Реклама'], text: 'Анимированные баннеры для акций', img: W + 'html5-banners.webp', href: 'https://elenasamanchuk.github.io/html5-banners-vitrina/' },
     { row: 2, title: 'KnowEmbed', tags: ['ИИ', 'SaaS'], text: 'Конструктор ИИ-чат-ботов', img: W + 'knowembed.webp', href: 'https://elenasamanchuk.github.io/knowembed/' },
     { row: 2, title: 'Still store', tags: ['Магазин'], text: 'Демо интернет-магазина', img: W + 'still-store.webp', href: 'https://elenasamanchuk.github.io/still-store/' },
-    { row: 2, title: 'Поток', tags: ['Здоровье'], text: 'Приложение: питание, сон, вода', img: W + 'potok.webp', href: 'https://elenasamanchuk.github.io/vital-coach/onboarding/' },
-    { row: 2, title: 'Republic 2077', tags: ['Игра'], text: 'Свайп-игра о решениях', img: W + 'republic.webp', href: 'https://elenasamanchuk.github.io/republic-2077/' },
-    { row: 2, title: 'Learn Atlas', tags: ['Образование'], text: 'Интерактивный курс по вёрстке', img: W + 'learn-atlas.webp', href: 'https://elenasamanchuk.github.io/learn-atlas/' },
-    { row: 2, title: 'Job Radar', tags: ['Сервис'], text: 'Поиск удалённой работы', img: W + 'job-radar.webp', href: 'https://elenasamanchuk.github.io/job-radar/' },
-    { row: 2, title: 'Videohost', tags: ['Кино'], text: 'Кинопортал с трейлерами', img: W + 'videohost.webp', href: 'https://elenasamanchuk.github.io/videohost/' },
-    { row: 2, title: 'Таск-трекер', tags: ['Сервис'], text: 'Канбан для команд', img: W + 'task-tracker.webp', href: 'https://elenasamanchuk.github.io/task-tracker-mvp/' }
+    { row: 2, title: 'ZERO // Пробуждение', tags: ['Ивент'], text: 'Лендинг премьеры персонажа', img: W + 'zero.webp', href: 'https://elenasamanchuk.github.io/zero-awakening/' }
   ];
 
   window.BRIEF_PARTS = {
@@ -289,7 +282,7 @@
     {
       id: 'brand', part: 1,
       title: 'Фирменный стиль',
-      intro: 'Логотип, цвета, шрифты — всё, что уже есть',
+      intro: 'Логотип, цвета и стиль, который вам близок',
       fields: [
         {
           id: 'ct_logo', type: 'matrix', mode: 'radio', label: 'Логотип',
@@ -308,6 +301,10 @@
           ]
         },
         { id: 'ct_colors', type: 'text', label: 'Фирменные цвета и шрифты, если знаете', example: 'Тёмно-зелёный и бежевый, как на вывеске' },
+        {
+          id: 'd_style', type: 'styleboard', label: 'Какие стили нравятся, а какие точно нет',
+          hint: 'Это схемы, а не готовый дизайн: смотрите на цвета, воздух, шрифты и настроение. Отметьте «Нравится» или «Не моё» хотя бы у нескольких'
+        },
         {
           id: 'ct_files', type: 'file', label: 'Прикрепите, что есть под рукой',
           hint: 'Логотипы, брендбук, прайс или меню, фото. До 20 МБ всего — остальное ссылкой ниже'
@@ -384,6 +381,16 @@
         {
           id: 'g_usp', type: 'perBrand', label: 'Почему выбирают вас, а не конкурентов',
           example: 'Большие порции и домашний вкус · работаем с 7 утра · бесплатная парковка'
+        },
+        {
+          id: 'g_sources', type: 'checkbox', label: 'Откуда сейчас приходят клиенты',
+          options: ['Яндекс Карты и 2ГИС', 'Instagram', 'ВКонтакте', 'Telegram', 'Сарафанное радио', 'Сервисы доставки', 'Реклама', 'Проходят мимо'],
+          other: true
+        },
+        {
+          id: 'g_faq', type: 'textarea', label: 'Что клиенты чаще всего спрашивают по телефону или в директе',
+          hint: 'Из этого получатся блок «Вопросы и ответы» и тексты, которые снимут лишние звонки',
+          example: 'Есть ли свободные столы в пятницу · Можно ли с детьми · Сколько стоит банкет на 30 человек'
         },
         { id: 'g_competitors', type: 'textarea', label: 'Конкуренты и те, на кого равняетесь', hint: 'Можно ссылками, в вашем городе и не только', example: 'Кафе «Соседи» — у них удобная бронь; сайт pizza.by — понятное меню' },
         {
@@ -534,6 +541,12 @@
           options: [['yes', 'Да'], ['pdf', 'Только PDF-картой'], ['no', 'Нет']]
         },
         {
+          id: 'fd_features', type: 'checkbox', label: 'Что важно рассказать гостям',
+          hint: 'Покажем на сайте и отметим в карточках на картах',
+          options: ['Парковка', 'Детская комната или меню', 'Летняя веранда', 'Можно с животными', 'Wi-Fi', 'Доступно для колясок', 'Живая музыка', 'Трансляции матчей'],
+          other: true
+        },
+        {
           id: 'fd_aggregators', type: 'checkbox', label: 'Где сейчас можно заказать доставку',
           options: [['yandex', 'Яндекс Еда'], ['delivio', 'Delivio'], ['justeat', 'just-eat.by'], ['own', 'Своя доставка по телефону'], ['none', 'Нигде']],
           other: true
@@ -659,6 +672,16 @@
       intro: 'Что есть и что нужно подготовить',
       fields: [
         {
+          id: 'ct_ready', type: 'radio', label: 'Кто и когда подготовит материалы: тексты, фото, цены',
+          hint: 'Сроки запуска больше всего зависят от того, когда будут готовы материалы',
+          options: [
+            ['week', 'Соберём сами за неделю'],
+            ['long', 'Соберём, но нужно время'],
+            ['help', 'Нужна помощь', 'Тексты, съёмка, оцифровка меню или прайса'],
+            DONT_KNOW
+          ]
+        },
+        {
           id: 'ct_texts', type: 'radio', label: 'Тексты для сайта',
           options: [['ready', 'Есть готовые'], ['partial', 'Есть частично — в соцсетях, на старом сайте'], ['none', 'Нужно написать с нуля']]
         },
@@ -676,6 +699,15 @@
           hint: 'Например, для фонов, иллюстраций и баннеров. Товары, блюда и интерьер лучше показывать настоящими',
           options: [['yes', 'Да, где уместно'], ['decor', 'Только для фонов и иллюстраций'], ['no', 'Нет, только настоящие фото'], DONT_KNOW]
         },
+        { id: 'ct_files2', type: 'file', label: 'Тексты, прайс, фото', hint: 'Если не прикрепили в первой части' }
+      ]
+    },
+
+    {
+      id: 'voice', part: 2,
+      title: 'Голос и история',
+      intro: 'Как говорить с клиентами и что о вас рассказать',
+      fields: [
         {
           id: 'ct_tone', type: 'matrix', mode: 'checkbox', label: 'Каким тоном говорить с клиентами',
           rows: 'brands',
@@ -689,31 +721,15 @@
           id: 'b_spelling', type: 'text', label: 'Как правильно писать название',
           hint: 'Если в поиске и соцсетях встречаются разные варианты написания',
           example: '«Кофе-Тайм», а не «Кофетайм»; латиницей — coffeetime'
-        },
-        { id: 'ct_files2', type: 'file', label: 'Тексты, прайс, фото', hint: 'Если не прикрепили в первой части' }
+        }
       ]
     },
 
     {
       id: 'design', part: 2,
       title: 'Дизайн и ориентиры',
-      intro: 'Выберите настроение по картинкам — это мои работы, по клику откроются',
+      intro: 'Ориентиры, референсы и дополнительные материалы',
       fields: [
-        {
-          id: 'd_style', type: 'checkbox', layout: 'visual', label: 'Какое настроение ближе',
-          hint: 'Можно несколько. Важно не «как у них», а общее ощущение',
-          options: [
-            ['light', 'Светлый минимализм', '', { img: W + 'yandex-pet-day.webp', href: 'https://elenasamanchuk.github.io/yandex-pet-day/', link: 'Yandex Pet Day' }],
-            ['bright', 'Яркий и сочный', '', { img: W + 'growfood.webp', href: 'https://amb.growfood.pro/food-selection-1', link: 'Growfood' }],
-            ['brandcolor', 'Смелые фирменные цвета', '', { img: W + 'priem-main.webp', href: 'https://priem.menu/?cmz=M3rW', link: 'Приём' }],
-            ['warm', 'Тёплый, мягкий, пастельный', '', { img: W + 'yourforma.webp', href: 'https://yourforma.ru/', link: 'Форма' }],
-            ['natural', 'Спокойный, природный', '', { img: W + 'yasnost.webp', href: 'https://sistemayasnosti.com/', link: 'Система Ясности' }],
-            ['photo', 'Много фото, как в каталоге', '', { img: W + 'nasha.webp', href: 'https://nashashop.ru/catalog', link: 'Nasha' }],
-            ['business', 'Деловой, технологичный', '', { img: W + 'nn99.webp', href: 'https://nn99.ru/', link: 'NN99' }],
-            ['dark', 'Тёмный, премиальный', '', { img: W + 'still-store.webp', href: 'https://elenasamanchuk.github.io/still-store/', link: 'Still store' }]
-          ],
-          other: true
-        },
         { id: 'd_like', type: 'textarea', label: 'Сайты, которые нравятся, и чем', example: 'site.by — крупные фото блюд и простое меню\nother.com — удобная запись в два клика' },
         { id: 'd_dislike', type: 'textarea', label: 'Что точно не нравится', example: 'Много текста, мелкий шрифт, тёмный фон' },
         {
@@ -739,10 +755,6 @@
       title: 'После запуска',
       intro: 'Кто ведёт сайт и куда приходят заявки',
       fields: [
-        {
-          id: 'c_content_owner', type: 'radio', label: 'Кто будет обновлять сайт: цены, акции, фото',
-          options: [['self', 'Я сам(а)'], ['staff', 'Сотрудник — администратор или маркетолог'], ['dev', 'Хотим, чтобы это делал разработчик'], DONT_KNOW]
-        },
         {
           id: 'p_edit', type: 'radio', label: 'Что хотите менять сами',
           options: [['prices', 'Только цены'], ['content', 'Цены, акции, фото и тексты'], ['all', 'Всё, вплоть до новых страниц'], ['nothing', 'Ничего']]

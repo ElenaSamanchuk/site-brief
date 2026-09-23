@@ -46,6 +46,8 @@
 
   function h(tag, attrs, children) {
     var el = document.createElement(tag);
+    // все внешние ссылки — в соседней вкладке
+    if (tag === 'a' && attrs && /^https?:/.test(attrs.href || '') && !attrs.target) { attrs.target = '_blank'; attrs.rel = 'noopener'; }
     if (attrs) Object.keys(attrs).forEach(function (k) {
       var v = attrs[k];
       if (v === null || v === undefined || v === false) return;
@@ -168,7 +170,7 @@
       wrap.appendChild(h('div', { class: 'info', html: f.html }));
       return wrap;
     }
-    var isGroup = ['radio', 'checkbox', 'matrix', 'perBrand', 'file'].indexOf(f.type) >= 0;
+    var isGroup = ['radio', 'checkbox', 'matrix', 'perBrand', 'file', 'styleboard'].indexOf(f.type) >= 0;
     var req = f.required ? h('span', { class: 'req', 'aria-hidden': 'true' }, [' *']) : null;
     wrap.appendChild(isGroup
       ? h('div', { class: 'q-label', id: 'lbl-' + f.id }, [f.label, req])
@@ -215,6 +217,7 @@
         return ta;
       case 'radio': case 'checkbox': return renderChoice(f);
       case 'matrix': return renderMatrix(f);
+      case 'styleboard': return renderStyleboard(f);
       case 'perBrand': return renderPerBrand(f);
       case 'file': return renderFile(f);
     }
@@ -362,6 +365,42 @@
       if (one) st[row] = one; else delete st[row];
     }
     setAnswer(f.id, st);
+  }
+
+  function renderStyleboard(f) {
+    var st = answers[f.id] || {};
+    if (Array.isArray(st)) { var conv = {}; st.forEach(function (k) { conv[k] = 'yes'; }); st = answers[f.id] = conv; }
+    var box = h('div', { class: 'styles' });
+    (window.BRIEF_STYLES || []).forEach(function (sty) {
+      var name = f.id + '::' + sty.id;
+      var cur = st[sty.id];
+      var card = h('div', { class: 'style-card' + (cur ? ' ' + cur : ''), role: 'group', 'aria-label': sty.title });
+      function paint() {
+        var v = (answers[f.id] || {})[sty.id];
+        card.classList.toggle('yes', v === 'yes');
+        card.classList.toggle('no', v === 'no');
+      }
+      function btn(v, text) {
+        return h('label', { class: 'opt opt-' + v }, [
+          h('input', {
+            type: 'radio', name: name, value: v, checked: cur === v ? true : null, 'data-was': cur === v ? '1' : null,
+            onchange: function () { onMatrix(f, sty.id, false); paint(); },
+            onclick: function (e) { toggleRadio(e, f, sty.id); paint(); }
+          }),
+          h('span', { class: 'opt-body' }, [h('span', { class: 'opt-title' }, [text])])
+        ]);
+      }
+      card.appendChild(h('span', { class: 'style-art', html: sty.svg }));
+      card.appendChild(h('div', { class: 'style-body' }, [
+        h('span', { class: 'style-title' }, [sty.title]),
+        h('span', { class: 'style-note' }, [sty.note]),
+        h('span', { class: 'style-sw', 'aria-hidden': 'true' }, sty.swatches.map(function (c) { return h('i', { style: 'background:' + c }); })),
+        sty.example ? h('a', { class: 'ex-link', href: sty.example.href, target: '_blank', rel: 'noopener' }, ['Пример: ' + sty.example.text + ' ↗']) : null,
+        h('div', { class: 'style-actions' }, [btn('yes', '✓ Нравится'), btn('no', '✕ Не моё')])
+      ]));
+      box.appendChild(card);
+    });
+    return box;
   }
 
   function renderPerBrand(f) {
@@ -613,7 +652,11 @@
       if (!list.length) return;
       var track = h('div', { class: 'mq-track' });
       list.forEach(function (w) { track.appendChild(workCard(w, false)); });
-      if (!reduce) list.forEach(function (w) { track.appendChild(workCard(w, true)); });
+      if (!reduce) {
+        // половина дорожки должна быть шире самого широкого экрана, иначе появится разрыв
+        var reps = Math.max(1, Math.ceil(2800 / (list.length * 170)));
+        for (var r = 1; r < reps * 2; r++) list.forEach(function (w) { track.appendChild(workCard(w, true)); });
+      }
       var row = h('div', { class: 'mq-row' + (reduce ? ' mq-static' : '') }, [track]);
       box.appendChild(row);
       if (!reduce) marquee(row, track, i % 2 ? 1 : -1, i % 2 ? 26 : 32);
@@ -810,6 +853,10 @@
             return o ? o.l : c;
           }).join(', ');
         }).join('\n');
+      case 'styleboard':
+        var yes = [], no = [];
+        (window.BRIEF_STYLES || []).forEach(function (sty) { if (v[sty.id] === 'yes') yes.push(sty.title); if (v[sty.id] === 'no') no.push(sty.title); });
+        return [yes.length ? 'Нравится: ' + yes.join(', ') : '', no.length ? 'Не моё: ' + no.join(', ') : ''].filter(Boolean).join('\n');
       case 'perBrand':
         var bl = brandList();
         return bl.filter(function (b) { return isFilled(v[b[0]]); }).map(function (b) {
@@ -836,6 +883,10 @@
         out.display[f.id] = display(f);
         var lab = { label: f.label, section: s.title };
         if (f.options || f.optionsFrom) { lab.options = {}; optionsOf(f).forEach(function (o) { lab.options[o.v] = o.l; }); }
+        if (f.type === 'styleboard') {
+          lab.rows = {}; (window.BRIEF_STYLES || []).forEach(function (sty) { lab.rows[sty.id] = sty.title; });
+          lab.cols = { yes: 'Нравится', no: 'Не моё' };
+        }
         if (f.type === 'matrix') {
           lab.rows = {}; rowsOf(f).forEach(function (o) { lab.rows[o.v] = o.l; });
           lab.cols = {}; colsOf(f).forEach(function (o) { lab.cols[o.v] = o.l; });
@@ -1065,6 +1116,7 @@
   });
 
   document.querySelectorAll('[data-typo]').forEach(typoTree);
+  document.querySelectorAll('a[href^="http"]').forEach(function (a) { a.target = '_blank'; a.rel = 'noopener'; });
   // тема: светлая по умолчанию, выбор запоминаем
   var themeBtn = document.getElementById('theme-toggle');
   function applyTheme(t) {

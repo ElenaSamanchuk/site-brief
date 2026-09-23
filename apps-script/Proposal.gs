@@ -97,6 +97,7 @@ var KP = {
     m_photos: 'фото',
     ct_texts: 'кто пишет тексты',
     sp_support: 'нужна ли поддержка после запуска',
+    ct_ready: 'кто и когда подготовит материалы',
     l_domain: 'домен'
   }
 };
@@ -317,6 +318,11 @@ function buildProposal(data) {
   if (goals.length) understood.push('Ещё сайт должен ' + goals.join('; '));
   if (a.g_audience) understood.push('Ваши клиенты: ' + String(a.g_audience).trim());
   if (a.g_pain) understood.push('Что мешает сейчас: «' + String(a.g_pain).trim() + '»');
+  if (arr('g_sources').length) understood.push('Клиенты приходят из: ' + arr('g_sources').map(function (x) { return lcFirst(lab('g_sources', x)); }).join(', '));
+  var ds = a.d_style && !Array.isArray(a.d_style) ? a.d_style : {};
+  var likeSt = Object.keys(ds).filter(function (k) { return ds[k] === 'yes'; }).map(function (k) { return lcFirst(rowLab('d_style', k)); });
+  var noSt = Object.keys(ds).filter(function (k) { return ds[k] === 'no'; }).map(function (k) { return lcFirst(rowLab('d_style', k)); });
+  if (likeSt.length || noSt.length) understood.push('Стиль: ' + [likeSt.length ? 'нравится — ' + likeSt.join(', ') : '', noSt.length ? 'не подходит — ' + noSt.join(', ') : ''].filter(Boolean).join('; '));
   if (a.g_priority) understood.push('Приоритет — ' + lcFirst(lab('g_priority', a.g_priority)));
   if (a.g_deadline) understood.push('Сроки — ' + lcFirst(lab('g_deadline', a.g_deadline)) + (a.g_deadline_why ? ' (' + a.g_deadline_why + ')' : ''));
   if (understood.length) {
@@ -361,6 +367,7 @@ function buildProposal(data) {
     if (added.banquets) blocks.push(food ? 'банкеты и заявка' : 'мероприятия');
     if (added.bookingForm || added.booking || added.bookingService) blocks.push(food ? 'бронь столика' : 'онлайн-запись');
     if (added.jobs) blocks.push('вакансии');
+    if (a.g_faq) blocks.push('ответы на частые вопросы');
     blocks.push('о вас и отзывы', 'контакты');
     sitemap.push('Блоки страницы: ' + blocks.join(', '));
   }
@@ -400,6 +407,8 @@ function buildProposal(data) {
       'По желанию — отметка в ваших соцсетях при запуске',
       a.g_payment === 'company' ? 'Оплата по договору, счёт и акт: 50% перед стартом, 50% после запуска' : 'Оплата: 50% перед стартом, 50% после запуска',
       'Два круга правок на каждом этапе',
+      'Исправление ошибок в течение 30 дней после запуска — бесплатно',
+      'Домен, доступы, исходники и права на сайт — ваши',
       'Сроки считаются с момента, когда получены материалы: тексты или факты, фото, логотипы, цены'
     ]
   });
@@ -471,6 +480,8 @@ function buildProposal(data) {
   if (a.m_updates === 'daily') inLines.push('Цены или меню меняются каждый день — обновление без тебя: таблица или бот');
   if (a.m_photos === 'none' || a.m_photos === 'amateur') inLines.push('Хороших фото нет — заложить съёмку или подбор' + (a.ct_ai === 'yes' || a.ct_ai === 'decor' ? '; клиент не против ИИ-изображений' + (a.ct_ai === 'decor' ? ' для фонов и иллюстраций' : '') : ''));
   if (noLogo.length) inLines.push('Логотипа нет или хотят обновить' + (multiBrand ? ': ' + names(noLogo) : ''));
+  if (a.ct_ready === 'long') inLines.push('Материалы клиент будет собирать долго — сроки считать от их готовности, начать со структуры');
+  if (a.ct_ready === 'help') inLines.push('Клиенту нужна помощь с материалами — заложить тексты, съёмку или оцифровку меню');
   if (missing.length) inLines.push('Уточнить на созвоне: ' + missing.join(', '));
 
   var short = [];
