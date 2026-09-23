@@ -34,7 +34,7 @@
     { row: 1, title: 'Kochfit', tags: ['Фитнес', 'Образование'], text: 'Фитнес-школа женского здоровья', img: W + 'kochfit.webp', href: 'https://kochfit.ru/' },
     { row: 1, title: 'Popovichfit', tags: ['Фитнес', 'Образование'], text: 'Онлайн-фитнес-клуб', img: W + 'popovichfit.webp', href: 'https://popovichfit.ru/' },
     { row: 1, title: 'Kinezio Fitness', tags: ['Фитнес', 'Образование'], text: 'Бесплатный модуль курса', img: W + 'kinezio.webp', href: 'https://kineziofitness.online/module-zero' },
-    { row: 1, title: 'BI13', tags: ['Фотография', 'Образование'], text: 'Онлайн-школа мобильной фотографии', img: W + 'bi13.webp', href: 'https://bi13pro.ru/aestheticbi13' },
+    { row: 1, title: 'BI13', tags: ['Фотография', 'Образование'], text: 'Онлайн-школа мобильной фотографии', img: W + 'bi13.webp', href: 'https://bi13pro.ru/aesthetic-high-level' },
     { row: 1, title: 'Savinar', tags: ['Образование', 'SMM'], text: 'Лендинг курса по продвижению', img: W + 'savinar.webp', href: 'https://savinarv.tilda.ws/' },
     { row: 1, title: 'Nasha', tags: ['Магазин'], text: 'Интернет-магазин одежды', img: W + 'nasha.webp', href: 'https://nashashop.ru/catalog' },
     { row: 1, title: 'HR-витрина', tags: ['Вакансии'], text: 'Найм менеджеров продаж', img: W + 'hr.webp', href: 'https://sales-manager-chat.tilda.ws/' },
