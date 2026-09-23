@@ -1,0 +1,6 @@
+.DS_Store
+internal/
+tools/out/
+apps-script/dist/
+apps-script/secrets.local.json
+node_modules/
