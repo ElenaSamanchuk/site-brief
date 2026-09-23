@@ -533,3 +533,6 @@ input[type="date"].inp { max-width: 240px; }
   .process li { opacity: 1; transform: none; }
   .pv-scroll { animation: none !important; }
 }
+
+/* на широких экранах макет уже виден сбоку — на итоговых экранах не дублируем */
+@media (min-width: 961px) { .screen-preview { display: none; } }
