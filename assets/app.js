@@ -1337,4 +1337,17 @@
   }
   renderWorks();
   render();
+
+  // рекламный ролик: играет, только когда виден; при отключённых анимациях — постер и кнопка «Смотреть»
+  (function promoVideo() {
+    var box = document.getElementById('promo-video');
+    if (!box) return;
+    var v = box.querySelector('video'), btn = box.querySelector('.promo-play');
+    function play() { var p = v.play(); if (p && p.catch) p.catch(function () { box.classList.add('is-paused'); }); }
+    btn.addEventListener('click', function () { box.classList.remove('is-paused'); v.controls = true; play(); });
+    if (reduceMotion || !('IntersectionObserver' in window)) { box.classList.add('is-paused'); return; }
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { if (!box.classList.contains('is-paused')) play(); } else v.pause(); });
+    }, { threshold: 0.35 }).observe(box);
+  })();
 })();
