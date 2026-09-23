@@ -319,10 +319,12 @@
     }
     var chars = cols.reduce(function (n, c) { return n + c.l.length; }, 0);
     var box = h('div', { class: 'matrix' + (multi ? '' : ' matrix-radio') + (chars > 34 || cols.length > 4 ? ' matrix-stack' : '') });
+    // ровный переключатель — только для 2–3 коротких вариантов «один из»; иначе — плашки с переносом
+    var seg = !multi && cols.length <= 3 && cols.every(function (c) { return c.l.length <= 18; });
     rows.forEach(function (r) {
       var name = f.id + '::' + r.v;
       var cur = state[r.v];
-      var opts = h('div', { class: 'mrow-opts' });
+      var opts = h('div', { class: 'mrow-opts' + (seg ? ' seg' : '') });
       cols.forEach(function (c) {
         var checked = multi ? (cur || []).indexOf(c.v) >= 0 : cur === c.v;
         opts.appendChild(h('label', { class: 'opt opt-mini' + (['no', 'none', 'unk'].indexOf(c.v) >= 0 ? ' opt-soft' : '') }, [
@@ -613,7 +615,7 @@
     var m10 = n % 10, m100 = n % 100;
     return n + ' ' + (m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many);
   }
-  var CHEERS = ['Отлично 👍', 'Так держать ✨', 'Супер, идём дальше', 'Уже видно, каким будет сайт', 'Ещё чуть-чуть 💪', 'Почти всё'];
+  var CHEERS_START = ['Отлично 👍', 'Так держать ✨', 'Хорошее начало'], CHEERS_MID = ['Супер, идём дальше', 'Уже видно, каким будет сайт'], CHEERS_END = ['Ещё чуть-чуть 💪', 'Почти всё'];
   function cheer(list, from) {
     var part = list[from].part;
     var steps = list.filter(function (x) { return x.part === part && x.kind === 'sec'; });
@@ -621,7 +623,8 @@
     if (!rest.length) return; // конец части — там свой экран и конфетти
     var done = steps.length - rest.length;
     var min = rest.reduce(function (n, x) { return n + minutes(x.s); }, 0);
-    var lead = part === 1 && done === Math.ceil(steps.length / 2) ? 'Половина главного позади 🔥' : CHEERS[(done - 1) % CHEERS.length];
+    var ratio = done / steps.length, pool = ratio < 0.4 ? CHEERS_START : ratio < 0.75 ? CHEERS_MID : CHEERS_END;
+    var lead = done === Math.ceil(steps.length / 2) ? (part === 1 ? 'Половина главного позади 🔥' : 'Половина деталей позади 🔥') : rest.length === 1 ? 'Остался последний шаг' : pool[(done - 1) % pool.length];
     toast(lead + ' · осталось ' + plural(rest.length, 'шаг', 'шага', 'шагов') + ', ≈ ' + min + ' мин');
   }
   var addedBuf = [], addedTimer = null;
