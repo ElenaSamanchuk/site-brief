@@ -59,6 +59,8 @@ var KP = {
     tgbot: { title: 'Telegram-бот: заявки, запись, уведомления клиентам', rate: 0, days: 6 },
     chat: { title: 'Кнопки мессенджеров и онлайн-чат', rate: 0, days: 1 },
     aibot: { title: 'ИИ-помощник на сайте: отвечает на частые вопросы, вопросы и заявки — в Telegram', rate: null, days: 3 },
+    pwa: { title: 'Сайт-приложение: установка на экран телефона, быстрый запуск, уведомления', rate: null, days: 2 },
+    mobileApp: { title: 'Мобильное приложение в App Store и Google Play', rate: null, days: 20 },
     subscribe: { title: 'Сбор контактов для рассылок', rate: 0, days: 1 },
     qr: { title: 'QR-коды для точек: меню, отзывы, Wi-Fi', rate: 0, days: 1 },
     a11y: { title: 'Версия для слабовидящих', rate: 0, days: 2 },
@@ -250,6 +252,8 @@ function buildProposal(data) {
   }
   if (a.f_bot === 'site' || a.f_bot === 'both') add('aibot', 1);
   if (a.f_bot === 'tg' || a.f_bot === 'both') add('tgbot', 1);
+  if (a.f_app === 'pwa') add('pwa', 1);
+  if (a.f_app === 'store') add('mobileApp', 2);
   Object.keys(fm).forEach(function (k) {
     if (!M[k] || added[k]) return;
     if (fm[k] === 'now') add(k, 1);
@@ -490,6 +494,8 @@ function buildProposal(data) {
   var aiSite = a.ct_ai === 'yes' || a.ct_ai === 'decor' || has('ai_gen', 'site');
   if (a.m_photos === 'none' || a.m_photos === 'amateur' || a.ct_images === 'none' || a.ct_images === 'some') inLines.push('Хороших фото мало или нет — заложить съёмку или подбор' + (aiSite ? '; клиент не против ИИ-изображений для сайта' : ''));
   if (has('ai_gen', 'ads')) inLines.push('Клиент хочет ИИ-креативы для рекламы и соцсетей — предложить пакет');
+  if (a.f_app === 'store') inLines.push('Клиент хочет приложение в сторах — отдельный проект: оценить отдельно, предложить начать с сайта-приложения (PWA)');
+  if (a.f_app === 'unk') inLines.push('Про приложение не решили — обсудить на созвоне: обычно хватает сайта-приложения (PWA)');
   if (has('ai_gen', 'texts')) inLines.push('Клиент не против черновиков текстов с ИИ — копирайтинг быстрее');
   if (noLogo.length) inLines.push('Логотипа нет или хотят обновить' + (multiBrand ? ': ' + names(noLogo) : ''));
   if (a.ct_ready === 'long') inLines.push('Материалы клиент будет собирать долго — сроки считать от их готовности, начать со структуры');

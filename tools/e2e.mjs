@@ -109,6 +109,7 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await pick(page, 'f_matrix::b2b', 'later');
   await pick(page, 'f_matrix::quiz', 'later');
   await pick(page, 'f_bot', 'site');
+  await pick(page, 'f_app', 'pwa');
   await page.waitForTimeout(300);
   const pvBlocks = await page.$$eval('#pv-side-mount .pv-block h5', (els) => els.map((e) => e.firstChild.textContent));
   assert(pvBlocks.includes('Меню дня') && pvBlocks.includes('Бронь столика') && pvBlocks.some((t) => t.startsWith('Наши адреса')), 'в макете блоки из ответов: ' + pvBlocks.join(', '));
