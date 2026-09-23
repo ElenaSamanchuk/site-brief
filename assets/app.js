@@ -576,7 +576,7 @@
     }
     cur = id;
     if (stepDone) cheer(list, from);
-    if ((id === 'break' || id === 'finish') && to > from) setTimeout(confetti, 250);
+    if ((id === 'break' || id === 'finish') && to > from) { toastQueue = []; setTimeout(confetti, 250); }
     if (pendingRender) { pendingRender = false; render(); } else refresh();
     var top = document.getElementById('main').getBoundingClientRect().top + window.scrollY - 70;
     if (window.scrollY > top || !opts.stay) window.scrollTo({ top: Math.max(0, top), behavior: opts.instant ? 'auto' : 'smooth' });
@@ -591,8 +591,7 @@
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var toastEl = null, toastQueue = [], toastBusy = false;
   function toast(text) {
-    toastQueue.push(text);
-    if (toastQueue.length > 2) toastQueue.splice(0, toastQueue.length - 2);
+    toastQueue = [text]; // только самое свежее: устаревшая похвала после быстрого перехода не нужна
     if (!toastBusy) nextToast();
   }
   function nextToast() {
