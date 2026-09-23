@@ -37,7 +37,7 @@
     { row: 1, title: 'Nasha', tags: ['Магазин'], text: 'Интернет-магазин одежды', img: W + 'nasha.webp', href: 'https://nashashop.ru/' },
     { row: 2, title: 'Growfood', tags: ['Еда'], text: 'ИМТ-калькулятор и подбор питания', img: W + 'gf-calc-popup.webp', href: 'https://amb.growfood.pro/food-selection-1' },
     { row: 2, title: 'Growfood', tags: ['Еда', 'Игра'], text: 'Колесо фортуны с призами и промокодами', img: W + 'gf-wheel.webp', href: 'https://amb.growfood.pro/page79566396.html#reg' },
-    { row: 2, title: 'Приём', tags: ['Еда', 'Акции'], text: 'Таймер акции с Т-Банком', img: W + 'priem-timer.webp', href: 'https://priem.menu/?cmz=Kdw5' },
+    { row: 2, title: 'Приём', tags: ['Еда', 'Акции'], text: 'Таймер акции с Т‑Банком', img: W + 'priem-timer.webp', href: 'https://priem.menu/?cmz=Kdw5' },
     { row: 2, title: 'Приём', tags: ['Еда', 'Игра'], text: 'Игра-мемо «Запомни лето»', img: W + 'priem-cards.webp', href: 'https://priem.menu/?cmz=mmBd' },
     { row: 2, title: 'Savinar', tags: ['Образование', 'SMM'], text: 'Лендинг курса по продвижению', img: W + 'savinar.webp', href: 'https://savinarv.tilda.ws/' },
     { row: 2, title: 'GF Gift', tags: ['Еда'], text: 'Подарочные сертификаты с корзиной', img: W + 'gfgift.webp', href: 'https://gf-gift.ru/#podari' },
