@@ -96,6 +96,7 @@ var KP = {
     f_matrix: 'какие функции сразу, какие потом',
     m_photos: 'фото',
     ct_texts: 'кто пишет тексты',
+    sp_support: 'нужна ли поддержка после запуска',
     l_domain: 'домен'
   }
 };
@@ -263,7 +264,7 @@ function buildProposal(data) {
   /* ── платформа (внутреннее решение) ── */
   var customKeys = ['gsheet', 'daily', 'banqcalc', 'calc', 'quiz', 'game', 'tgbot', 'booking', 'pos_sync', 'map', 'delivery_zones', 'remind', 'lms'];
   var custom = customKeys.filter(function (k) { return added[k]; });
-  var wantsEdit = ['content', 'all'].indexOf(a.p_edit) >= 0 || ['self', 'staff'].indexOf(a.c_content_owner) >= 0;
+  var wantsEdit = ['content', 'all'].indexOf(a.p_edit) >= 0 || ['self', 'staff'].indexOf(a.c_content_owner) >= 0 || a.sp_support === 'self';
   var platform, platformWhy;
   if (needPay) {
     platform = wantsEdit ? 'tilda' : 'code';
@@ -423,7 +424,9 @@ function buildProposal(data) {
   var regular = [];
   regular.push('Домен' + (a.l_domain_name ? ' ' + a.l_domain_name : '') + ' — продление раз в год: ___ BYN');
   regular.push(platform === 'code' ? 'Хостинг: ___ BYN в месяц' : 'Размещение на Тильде: ___ BYN в месяц');
-  if (a.sp_support === 'monthly' || a.g_monthly === 'support') regular.push('Поддержка — обновления, правки, мелкие доработки: ___ BYN в месяц');
+  if (a.sp_support === 'monthly') regular.push('Сопровождение: домен и хостинг, обновление меню и каталога, правки и техвопросы — ___ BYN в месяц');
+  else if (a.sp_support === 'ondemand') regular.push('Разовые работы после запуска — по отдельной оценке');
+  else if (a.sp_support === 'self') regular.push('Сайт ведёте сами — научу работать в редакторе, короткая видеоинструкция входит в запуск');
   if (needPay) regular.push('Комиссия банка за онлайн-оплату — по договору эквайринга');
   model.push({ t: 'h2', text: 'Регулярные расходы' });
   model.push({ t: 'ul', items: regular });

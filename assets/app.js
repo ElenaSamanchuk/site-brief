@@ -311,7 +311,8 @@
       });
       return box1;
     }
-    var box = h('div', { class: 'matrix' + (multi ? '' : ' matrix-radio') });
+    var chars = cols.reduce(function (n, c) { return n + c.l.length; }, 0);
+    var box = h('div', { class: 'matrix' + (multi ? '' : ' matrix-radio') + (chars > 34 || cols.length > 4 ? ' matrix-stack' : '') });
     rows.forEach(function (r) {
       var name = f.id + '::' + r.v;
       var cur = state[r.v];
@@ -550,23 +551,73 @@
     saveTimer = setTimeout(saveDraft, 200);
   }
 
+  /* ───────── бегущая строка работ ───────── */
+  function workCard(w, clone) {
+    return h('a', {
+      class: 'work', href: w.href, target: '_blank', rel: 'noopener', draggable: 'false',
+      tabindex: clone ? '-1' : null, 'aria-hidden': clone ? 'true' : null,
+      'aria-label': clone ? null : w.title + ' — ' + w.text + ' (откроется в новой вкладке)'
+    }, [
+      h('span', { class: 'work-img' }, [
+        h('img', { src: w.img, alt: '', loading: 'lazy', decoding: 'async', width: '156', height: '195', draggable: 'false' }),
+        w.tags ? h('span', { class: 'work-tags' }, w.tags.map(function (t) { return h('span', {}, [t]); })) : null,
+        w.badge ? h('span', { class: 'work-badge' }, [w.badge]) : null
+      ]),
+      h('span', { class: 'work-title' }, [w.title]),
+      h('span', { class: 'work-text' }, [w.text])
+    ]);
+  }
+  function marquee(row, track, dir, speed) {
+    var x = 0, half = 0, last = 0;
+    var hover = false, focus = false, dragging = false, visible = true;
+    var startX = 0, startOff = 0, moved = 0, pid = null;
+    function measure() { half = track.scrollWidth / 2; if (half && dir > 0 && x === 0) x = -half; }
+    measure();
+    window.addEventListener('resize', measure);
+    track.querySelectorAll('img').forEach(function (img) { img.addEventListener('load', measure); });
+    function tick(t) {
+      var dt = last ? Math.min(64, t - last) / 1000 : 0;
+      last = t;
+      if (!hover && !focus && !dragging && visible && half) x += dir * speed * dt;
+      if (half) { while (x <= -half) x += half; while (x > 0) x -= half; }
+      track.style.transform = 'translate3d(' + x.toFixed(2) + 'px,0,0)';
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    row.addEventListener('mouseenter', function () { hover = true; });
+    row.addEventListener('mouseleave', function () { hover = false; });
+    row.addEventListener('focusin', function () { focus = true; });
+    row.addEventListener('focusout', function () { focus = false; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }).observe(row);
+    row.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      pid = e.pointerId; startX = e.clientX; startOff = x; moved = 0;
+    });
+    row.addEventListener('pointermove', function (e) {
+      if (pid !== e.pointerId) return;
+      var dx = e.clientX - startX;
+      if (!dragging && Math.abs(dx) > 6) { dragging = true; row.classList.add('grabbing'); try { row.setPointerCapture(pid); } catch (err) { /* нет захвата — не страшно */ } }
+      if (dragging) { moved = dx; x = startOff + dx; }
+    });
+    function end() { pid = null; if (dragging) { dragging = false; row.classList.remove('grabbing'); } }
+    row.addEventListener('pointerup', end);
+    row.addEventListener('pointercancel', end);
+    row.addEventListener('click', function (e) { if (Math.abs(moved) > 6) { e.preventDefault(); e.stopPropagation(); } moved = 0; }, true);
+  }
   function renderWorks() {
     var box = document.getElementById('works');
     if (!box || !window.BRIEF_WORKS) return;
-    window.BRIEF_WORKS.forEach(function (w) {
-      box.appendChild(h('a', { class: 'work', href: w.href, target: '_blank', rel: 'noopener' }, [
-        h('span', { class: 'work-img' }, [h('img', { src: w.img, alt: '', loading: 'lazy', width: '160', height: '200' })]),
-        h('span', { class: 'work-title' }, [w.title]),
-        h('span', { class: 'work-text' }, [w.text])
-      ]));
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    [1, 2].forEach(function (rowNo, i) {
+      var list = window.BRIEF_WORKS.filter(function (w) { return (w.row || 1) === rowNo; });
+      if (!list.length) return;
+      var track = h('div', { class: 'mq-track' });
+      list.forEach(function (w) { track.appendChild(workCard(w, false)); });
+      if (!reduce) list.forEach(function (w) { track.appendChild(workCard(w, true)); });
+      var row = h('div', { class: 'mq-row' + (reduce ? ' mq-static' : '') }, [track]);
+      box.appendChild(row);
+      if (!reduce) marquee(row, track, i % 2 ? 1 : -1, i % 2 ? 26 : 32);
     });
-    if (DEV.portfolio) {
-      box.appendChild(h('a', { class: 'work work-more', href: DEV.portfolio, target: '_blank', rel: 'noopener' }, [
-        h('span', { class: 'work-more-arrow', 'aria-hidden': 'true' }, ['↗']),
-        h('span', { class: 'work-title' }, ['Все работы']),
-        h('span', { class: 'work-text' }, ['Портфолио целиком'])
-      ]));
-    }
   }
 
   /* ───────── state ───────── */
@@ -1014,6 +1065,20 @@
   });
 
   document.querySelectorAll('[data-typo]').forEach(typoTree);
+  // тема: светлая по умолчанию, выбор запоминаем
+  var themeBtn = document.getElementById('theme-toggle');
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    var meta = document.getElementById('meta-theme');
+    if (meta) meta.setAttribute('content', t === 'dark' ? '#000000' : '#fbfbfd');
+    if (themeBtn) { themeBtn.setAttribute('aria-pressed', t === 'dark' ? 'true' : 'false'); themeBtn.setAttribute('aria-label', t === 'dark' ? 'Светлая тема' : 'Тёмная тема'); }
+  }
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+  if (themeBtn) themeBtn.addEventListener('click', function () {
+    var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(t);
+    try { localStorage.setItem('site-brief-theme', t); } catch (e) { /* без запоминания */ }
+  });
   var startBtn = document.getElementById('start-btn');
   if (startBtn) startBtn.addEventListener('click', function (e) {
     e.preventDefault();

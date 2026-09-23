@@ -23,15 +23,39 @@
     portfolio: 'https://elenasamanchuk.github.io/elena-samanchuk/'
   };
 
+  // Бегущая строка «Мои работы»: row 1 — сайты и школы, row 2 — механики, промо и приложения
   window.BRIEF_WORKS = [
-    { title: 'Yandex Pet Day', text: 'Лендинг мероприятия под ключ', img: W + 'yandex-pet-day.webp', href: 'https://elenasamanchuk.github.io/yandex-pet-day/' },
-    { title: 'Growfood', text: 'Промо и механики для доставки еды', img: W + 'growfood.webp', href: 'https://amb.growfood.pro/food-selection-1' },
-    { title: 'Приём', text: 'Сезонные кампании, квиз, таймер', img: W + 'priem.webp', href: 'https://priem.menu/?cmz=M3rW' },
-    { title: 'Nasha', text: 'Каталог интернет-магазина', img: W + 'nasha.webp', href: 'https://nashashop.ru/catalog' },
-    { title: 'Форма', text: 'Сайт фитнес-эксперта', img: W + 'fitness.webp', href: 'https://yourforma.ru/' },
-    { title: 'Система Ясности', text: 'Сайт онлайн-школы', img: W + 'education.webp', href: 'https://sistemayasnosti.com/' },
-    { title: 'Still store', text: 'Демо интернет-магазина', img: W + 'still-store.webp', href: 'https://elenasamanchuk.github.io/still-store/' },
-    { title: 'NN99', text: 'Сайт сервиса для бизнеса', img: W + 'nn99.webp', href: 'https://nn99.ru/' }
+    { row: 1, title: 'Sender', tags: ['ИИ', 'SaaS'], text: 'ИИ-бот для поддержки клиентов', img: W + 'nn99.webp', href: 'https://nn99.ru/', badge: 'Своя админка' },
+    { row: 1, title: 'Platformax', tags: ['Образование', 'SaaS'], text: 'Платформа для онлайн-школ', img: W + 'platformax.webp', href: 'https://platformax.pro/', badge: 'Своя админка' },
+    { row: 1, title: 'Yandex Pet Day', tags: ['Мероприятие'], text: 'Лендинг конференции под ключ', img: W + 'yandex-pet-day.webp', href: 'https://elenasamanchuk.github.io/yandex-pet-day/' },
+    { row: 1, title: 'Система Ясности', tags: ['Образование', 'Психология'], text: 'Сайт онлайн-школы психологии', img: W + 'yasnost.webp', href: 'https://sistemayasnosti.com/' },
+    { row: 1, title: 'MedveDiva', tags: ['Фитнес', 'Образование'], text: 'Онлайн-фитнес-клуб', img: W + 'medvediva.webp', href: 'https://medvediva.ru/' },
+    { row: 1, title: 'Форма', tags: ['Фитнес'], text: 'Сайт фитнес-эксперта', img: W + 'yourforma.webp', href: 'https://yourforma.ru/' },
+    { row: 1, title: 'Kochfit', tags: ['Фитнес'], text: 'Итоги года фитнес-клуба', img: W + 'kochfit.webp', href: 'https://kochfit.ru/year-results' },
+    { row: 1, title: 'Popovichfit', tags: ['Фитнес', 'Образование'], text: 'Мини-сайт онлайн-фитнес-клуба', img: W + 'popovichfit.webp', href: 'https://popovichfit.ru/taplink' },
+    { row: 1, title: 'Kinezio Fitness', tags: ['Фитнес', 'Образование'], text: 'Бесплатный модуль курса', img: W + 'kinezio.webp', href: 'https://kineziofitness.online/module-zero' },
+    { row: 1, title: 'BI13', tags: ['Фотография', 'Образование'], text: 'Онлайн-школа мобильной фотографии', img: W + 'bi13.webp', href: 'https://bi13pro.ru/aestheticbi13' },
+    { row: 1, title: 'Savinar', tags: ['Образование', 'SMM'], text: 'Лендинг курса по продвижению', img: W + 'savinar.webp', href: 'https://savinarv.tilda.ws/' },
+    { row: 1, title: 'Nasha', tags: ['Магазин'], text: 'Интернет-магазин одежды', img: W + 'nasha.webp', href: 'https://nashashop.ru/catalog' },
+    { row: 1, title: 'SmartLogic', tags: ['Магазин'], text: 'Лендинг садовой мебели', img: W + 'smartlogic.webp', href: 'https://elenasamanchuk.github.io/smartlogic-landing/' },
+    { row: 1, title: 'HR-витрина', tags: ['Вакансии'], text: 'Найм менеджеров продаж', img: W + 'hr.webp', href: 'https://sales-manager-chat.tilda.ws/' },
+    { row: 1, title: 'Digital Landing Lab', tags: ['Веб-студия'], text: 'Сайт под ключ с механиками', img: W + 'dll.webp', href: 'https://elenasamanchuk.github.io/digital-landing-lab/' },
+    { row: 1, title: 'ZERO // Пробуждение', tags: ['Ивент'], text: 'Лендинг премьеры персонажа', img: W + 'zero.webp', href: 'https://elenasamanchuk.github.io/zero-awakening/' },
+    { row: 2, title: 'Growfood', tags: ['Еда'], text: 'Подбор программы питания', img: W + 'gf-calc.webp', href: 'https://amb.growfood.pro/food-selection-1' },
+    { row: 2, title: 'Growfood', tags: ['Еда', 'Игра'], text: 'Колесо фортуны с призами и промокодами', img: W + 'gf-wheel.webp', href: 'https://amb.growfood.pro/page79566396.html#reg' },
+    { row: 2, title: 'Приём', tags: ['Еда', 'Акции'], text: 'Сезонные акции, квиз и таймер', img: W + 'priem-main.webp', href: 'https://priem.menu/?cmz=M3rW' },
+    { row: 2, title: 'Приём', tags: ['Еда', 'Игра'], text: 'Игровые карточки со скидками', img: W + 'priem-cards.webp', href: 'https://amb.priem.menu/page101080486.html' },
+    { row: 2, title: 'GF Gift', tags: ['Еда'], text: 'Подарочные сертификаты с корзиной', img: W + 'gfgift.webp', href: 'https://gf-gift.ru/#podari' },
+    { row: 2, title: 'Growfood', tags: ['Еда'], text: 'Промо-страница с плейлистом', img: W + 'gfmusic.webp', href: 'https://gfmusic.tilda.ws/#rec943861591' },
+    { row: 2, title: 'HTML5-баннеры', tags: ['Реклама'], text: 'Анимированные баннеры для акций', img: W + 'html5-banners.webp', href: 'https://elenasamanchuk.github.io/html5-banners-vitrina/' },
+    { row: 2, title: 'KnowEmbed', tags: ['ИИ', 'SaaS'], text: 'Конструктор ИИ-чат-ботов', img: W + 'knowembed.webp', href: 'https://elenasamanchuk.github.io/knowembed/' },
+    { row: 2, title: 'Still store', tags: ['Магазин'], text: 'Демо интернет-магазина', img: W + 'still-store.webp', href: 'https://elenasamanchuk.github.io/still-store/' },
+    { row: 2, title: 'Поток', tags: ['Здоровье'], text: 'Приложение: питание, сон, вода', img: W + 'potok.webp', href: 'https://elenasamanchuk.github.io/vital-coach/onboarding/' },
+    { row: 2, title: 'Republic 2077', tags: ['Игра'], text: 'Свайп-игра о решениях', img: W + 'republic.webp', href: 'https://elenasamanchuk.github.io/republic-2077/' },
+    { row: 2, title: 'Learn Atlas', tags: ['Образование'], text: 'Интерактивный курс по вёрстке', img: W + 'learn-atlas.webp', href: 'https://elenasamanchuk.github.io/learn-atlas/' },
+    { row: 2, title: 'Job Radar', tags: ['Сервис'], text: 'Поиск удалённой работы', img: W + 'job-radar.webp', href: 'https://elenasamanchuk.github.io/job-radar/' },
+    { row: 2, title: 'Videohost', tags: ['Кино'], text: 'Кинопортал с трейлерами', img: W + 'videohost.webp', href: 'https://elenasamanchuk.github.io/videohost/' },
+    { row: 2, title: 'Таск-трекер', tags: ['Сервис'], text: 'Канбан для команд', img: W + 'task-tracker.webp', href: 'https://elenasamanchuk.github.io/task-tracker-mvp/' }
   ];
 
   window.BRIEF_PARTS = {
@@ -49,16 +73,7 @@
         { id: 'c_name', type: 'text', label: 'Как вас зовут', required: true, autocomplete: 'name', placeholder: 'Имя' },
         { id: 'c_phone', type: 'tel', label: 'Телефон', required: true, placeholder: '+375 29 000-00-00', autocomplete: 'tel' },
         { id: 'c_messenger', type: 'text', label: 'Telegram или Viber', placeholder: '@ник или номер', hint: 'Сюда пришлю вопросы и предложение' },
-        { id: 'c_email', type: 'email', label: 'Почта', placeholder: 'name@mail.by', autocomplete: 'email' },
-        {
-          id: 'c_role', type: 'radio', label: 'Ваша роль в проекте',
-          options: ['Владелец', 'Руководитель', 'Маркетолог / SMM', 'Сотрудник'], other: true
-        },
-        {
-          id: 'c_decider', type: 'text', label: 'Кто принимает финальное решение по сайту',
-          example: 'Я сам(а) · Анна, совладелец',
-          why: 'Чтобы показывать дизайн и тексты сразу тому, кто утверждает, — так проект не застрянет на согласованиях'
-        }
+        { id: 'c_email', type: 'email', label: 'Почта', placeholder: 'name@mail.by', autocomplete: 'email' }
       ]
     },
 
@@ -86,8 +101,7 @@
         {
           id: 'b_brands', type: 'textarea', lines: 2, label: 'Бренды, заведения или направления на сайте',
           hint: 'Если их несколько — перечислите через запятую. Если одно — оставьте пустым',
-          example: 'Кофейня «Зерно», пекарня «Колос»',
-          why: 'Если брендов несколько, дальше часть вопросов будет отдельно по каждому — например, логотипы и нужные разделы'
+          example: 'Кофейня «Зерно», пекарня «Колос»'
         },
         {
           id: 'b_about', type: 'textarea', label: 'Коротко: что продаёте и кому',
@@ -105,6 +119,7 @@
         },
         {
           id: 'b_links', type: 'textarea', lines: 2, label: 'Ссылки: нынешний сайт, соцсети, карты',
+          hint: 'Если под рукой нет — не страшно: при необходимости соберу аналитику по названию бренда сама',
           example: 'instagram.com/zerno.cafe, yandex.by/maps/…'
         },
       ]
@@ -173,8 +188,8 @@
           options: [
             ['landing', 'Одна страница — лендинг', 'Всё главное на одном длинном экране: предложение, цены, адреса, форма заявки. Самый быстрый старт', { anim: 'landing', href: 'https://elenasamanchuk.github.io/yandex-pet-day/', link: 'Пример: Yandex Pet Day' }],
             ['multi', 'Сайт из нескольких страниц', 'Отдельные страницы для услуг или меню, цен, контактов, вакансий. Лучше для поиска', { anim: 'multi', href: 'https://sistemayasnosti.com/', link: 'Пример: Система Ясности' }],
-            ['catalog', 'Каталог с заявкой', 'Товары или блюда с фото и ценами, заказ приходит вам в Telegram, оплата при получении', { anim: 'catalog' }],
-            ['shop', 'Интернет-магазин с оплатой', 'Корзина и оплата картой или через ЕРИП прямо на сайте', { anim: 'shop', links: [{ href: 'https://nashashop.ru/catalog', text: 'Пример: Nasha' }, { href: 'https://elenasamanchuk.github.io/still-store/', text: 'демо Still store' }] }],
+            ['catalog', 'Каталог с заявкой', 'Товары или блюда с фото и ценами, заказ приходит вам в Telegram, оплата при получении', { anim: 'catalog', href: 'https://elenasamanchuk.github.io/still-store/', link: 'Пример: демо Still store' }],
+            ['shop', 'Интернет-магазин с оплатой', 'Корзина и оплата картой или через ЕРИП прямо на сайте', { anim: 'shop', href: 'https://nashashop.ru/catalog', link: 'Пример: Nasha' }],
             ['taplink', 'Мини-сайт для соцсетей', 'Одна ссылка в шапку профиля: кнопки, контакты, главное о вас', { anim: 'taplink', href: 'https://popovichfit.ru/taplink', link: 'Пример: Popovichfit' }],
             ['advise', 'Посоветуйте', 'Предложу по ответам брифа', { anim: 'advise' }]
           ]
@@ -252,7 +267,7 @@
             ['account', 'Личный кабинет клиента', { for: ['shop', 'edu', 'health', 'beauty', 'services'] }],
             ['lms', 'Онлайн-обучение: доступ к урокам и домашним заданиям', { for: ['edu', 'expert'], rec: ['edu'] }],
             ['compare', 'Избранное и сравнение товаров', { for: ['shop'] }],
-            ['promo', 'Акции с таймером и баннеры, которые включаете сами', { rec: ['food', 'shop'], href: 'https://priem.menu/?cmz=Kdw5', link: 'пример' }],
+            ['promo', 'Акции, промокоды, таймеры и баннеры, которые включаете сами', { rec: ['food', 'shop'], href: 'https://priem.menu/?cmz=Kdw5', link: 'пример' }],
             ['game', 'Игровые механики: колесо фортуны, карточки со скидками', { for: ['food', 'shop', 'beauty', 'other'], href: 'https://amb.growfood.pro/page79566396.html#reg', link: 'пример' }],
             ['certs', 'Подарочные сертификаты', { for: ['food', 'beauty', 'health', 'shop', 'tourism', 'edu', 'other'], rec: ['beauty'], href: 'https://gf-gift.ru/#podari', link: 'пример' }],
             ['loyalty', 'Бонусная программа или скидочная карта', { for: ['food', 'beauty', 'health', 'shop', 'other'] }],
@@ -339,8 +354,14 @@
         },
         { id: 'g_budget_note', type: 'text', label: 'Комментарий к бюджету', example: 'Готовы платить частями · сначала хотим понять минимум' },
         {
-          id: 'g_monthly', type: 'radio', label: 'Ежемесячные расходы: домен, хостинг, поддержка',
-          options: [['min', 'Только самое необходимое'], ['support', 'Готовы платить за поддержку, если она экономит время'], DONT_KNOW]
+          id: 'sp_support', type: 'radio', label: 'Нужна ли поддержка сайта после запуска',
+          hint: 'Продление домена и хостинга, обновление меню и каталога, технические задачи и правки. Сопровождение оплачивается отдельно от разработки',
+          options: [
+            ['monthly', 'Да, нужна ежемесячная поддержка', 'Беру на себя домен и хостинг, обновления, мелкие правки и техвопросы — за фиксированную сумму в месяц'],
+            ['ondemand', 'Разово, когда понадобится', 'Пишете задачу — оцениваю и делаю отдельно'],
+            ['self', 'Будем вести сайт сами', 'Тогда лучше делать сайт на Тильде: в ней проще менять тексты, цены и фото без разработчика'],
+            DONT_KNOW
+          ]
         },
         {
           id: 'g_payment', type: 'radio', label: 'Как удобнее оформить оплату',
@@ -684,9 +705,9 @@
           options: [
             ['light', 'Светлый минимализм', '', { img: W + 'yandex-pet-day.webp', href: 'https://elenasamanchuk.github.io/yandex-pet-day/', link: 'Yandex Pet Day' }],
             ['bright', 'Яркий и сочный', '', { img: W + 'growfood.webp', href: 'https://amb.growfood.pro/food-selection-1', link: 'Growfood' }],
-            ['brandcolor', 'Смелые фирменные цвета', '', { img: W + 'priem.webp', href: 'https://priem.menu/?cmz=M3rW', link: 'Приём' }],
-            ['warm', 'Тёплый, мягкий, пастельный', '', { img: W + 'fitness.webp', href: 'https://yourforma.ru/', link: 'Форма' }],
-            ['natural', 'Спокойный, природный', '', { img: W + 'education.webp', href: 'https://sistemayasnosti.com/', link: 'Система Ясности' }],
+            ['brandcolor', 'Смелые фирменные цвета', '', { img: W + 'priem-main.webp', href: 'https://priem.menu/?cmz=M3rW', link: 'Приём' }],
+            ['warm', 'Тёплый, мягкий, пастельный', '', { img: W + 'yourforma.webp', href: 'https://yourforma.ru/', link: 'Форма' }],
+            ['natural', 'Спокойный, природный', '', { img: W + 'yasnost.webp', href: 'https://sistemayasnosti.com/', link: 'Система Ясности' }],
             ['photo', 'Много фото, как в каталоге', '', { img: W + 'nasha.webp', href: 'https://nashashop.ru/catalog', link: 'Nasha' }],
             ['business', 'Деловой, технологичный', '', { img: W + 'nn99.webp', href: 'https://nn99.ru/', link: 'NN99' }],
             ['dark', 'Тёмный, премиальный', '', { img: W + 'still-store.webp', href: 'https://elenasamanchuk.github.io/still-store/', link: 'Still store' }]
@@ -731,11 +752,7 @@
           options: [['telegram', 'Telegram'], ['email', 'Почта'], ['viber', 'Viber'], ['crm', 'CRM — Битрикс24, amoCRM'], ['erp', 'В учётную или кассовую программу'], ['sms', 'SMS']],
           other: true
         },
-        { id: 'o_operator', type: 'text', label: 'Кто и когда отвечает на заявки', example: 'Администратор, ежедневно с 9 до 21', why: 'Чтобы заявки приходили тому, кто на них реально отвечает, а клиент видел на сайте честное время ответа' },
-        {
-          id: 'sp_support', type: 'radio', label: 'Поддержка сайта после запуска',
-          options: [['monthly', 'Ежемесячная', 'Обновления, правки, мелкие доработки'], ['ondemand', 'Разово, по запросу'], ['no', 'Не нужна'], DONT_KNOW]
-        }
+        { id: 'o_operator', type: 'text', label: 'Кто и когда отвечает на заявки', example: 'Администратор, ежедневно с 9 до 21', why: 'Чтобы заявки приходили тому, кто на них реально отвечает, а клиент видел на сайте честное время ответа' }
       ]
     },
 

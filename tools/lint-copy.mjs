@@ -12,7 +12,7 @@ vm.runInContext(fs.readFileSync(path.join(root, 'assets/schema.js'), 'utf8'), ct
 const W = ctx.window;
 const issues = [];
 const check = (where, text) => {
-  if (typeof text !== 'string' || !text) return;
+  if (typeof text !== 'string' || !text.trim()) return;
   const t = text.replace(/<[^>]+>/g, '').trim();
   if (/[^.]\.$/.test(t) && !/\b(т\.\s?п|и\s?т\.\s?д|др|руб|ул|пр)\.$/.test(t)) issues.push(`точка в конце — ${where}: «${t.slice(-60)}»`);
   if (/ {2,}/.test(text)) issues.push(`двойной пробел — ${where}`);

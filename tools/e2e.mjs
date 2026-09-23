@@ -26,6 +26,24 @@ async function run(viewport, name, fn) {
   await page.goto(URL);
   await page.waitForSelector('#sec-contacts:not([hidden])');
   await page.screenshot({ path: path.join(shots, name + '-00-hero.png') });
+  if (name === 'desktop') {
+    const theme = await page.getAttribute('html', 'data-theme');
+    assert(theme === 'light', 'по умолчанию светлая тема');
+    const cards = await page.locator('.mq-row .work:not([aria-hidden])').count();
+    assert(cards >= 30, 'в бегущей строке все проекты: ' + cards);
+    const x1 = await page.$eval('.mq-track', (t) => t.style.transform);
+    await page.waitForTimeout(700);
+    const x2 = await page.$eval('.mq-track', (t) => t.style.transform);
+    assert(x1 !== x2, 'строка едет: ' + x1 + ' → ' + x2);
+    await page.locator('.works-wrap').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: path.join(shots, name + '-00-works.png') });
+    await page.click('#theme-toggle');
+    assert((await page.getAttribute('html', 'data-theme')) === 'dark', 'переключатель включает тёмную тему');
+    await page.screenshot({ path: path.join(shots, name + '-00-dark.png') });
+    await page.click('#theme-toggle');
+    await page.evaluate(() => window.scrollTo(0, 0));
+  }
   await fn(page, name);
   await ctx.close();
 }
@@ -47,7 +65,6 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await page.fill('#in-c_name', 'Тест Владелец');
   await page.fill('#in-c_phone', '+375 29 111-22-33');
   await page.fill('#in-c_messenger', '@test_owner');
-  await pick(page, 'c_role', 'Владелец');
   await shot(page, n + '-01-contacts');
   await next(page);
   assert((await current(page)) === 'sec-business', 'шаг 2 — О бизнесе');
@@ -107,6 +124,7 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await page.fill('#in-g_deadline_why', 'к новогодним корпоративам');
   await pick(page, 'g_budget', 'b600');
   await pick(page, 'g_payment', 'company');
+  await pick(page, 'sp_support', 'monthly');
   await shot(page, n + '-07-budget', true);
   await next(page);
   assert((await current(page)) === 'sec-break', 'после главного — экран «Главное готово»');
@@ -142,8 +160,11 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await pick(page, 'd_style', 'warm');
   await shot(page, n + '-11-design', true);
   await next(page);
+  console.log('   шаг:', await current(page));
   await next(page);
+  console.log('   шаг:', await current(page));
   await next(page);
+  assert((await current(page)) === 'sec-legal', 'шаг «Домен и документы»: ' + (await current(page)));
   await pick(page, 'l_domain', 'have');
   await page.fill('#in-l_domain_name', 'batski.by');
   await next(page);
