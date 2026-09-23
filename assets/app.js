@@ -1091,7 +1091,8 @@
       r.readAsDataURL(file);
     });
   }
-  function showStatus(kind, html) {
+  function showStatus(kind, html, reason) {
+    statusBox.dataset.reason = reason || '';
     statusBox.hidden = false;
     statusBox.className = 'status status-' + kind;
     statusBox.innerHTML = html;
@@ -1114,7 +1115,7 @@
     var bad = validate();
     if (bad === 'consent') {
       document.getElementById('consent-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      showStatus('error', 'Поставьте галочку согласия — и можно отправлять');
+      showStatus('error', 'Поставьте галочку согласия — и можно отправлять', 'consent');
       return;
     }
     if (bad) {
@@ -1229,7 +1230,7 @@
     main.appendChild(h('section', { class: 'thanks', tabindex: '-1', id: 'thanks' }, [
       h('div', { class: 'thanks-mark', 'aria-hidden': 'true' }, ['✓']),
       h('h2', {}, ['Спасибо, бриф у меня']),
-      h('p', {}, ['Изучу ответы и вернусь с предложением: структура сайта, варианты и сроки. Если что-то вспомните — просто напишите в Telegram']),
+      h('p', {}, ['Изучу ответы и вернусь с предложением: структура сайта, варианты и сроки. Если ', h('span', { style: 'white-space:nowrap' }, ['что-то']), ' вспомните — просто напишите в Telegram']),
       h('div', { class: 'thanks-actions' }, [
         h('button', { type: 'button', class: 'btn btn-ghost', onclick: function () { download(c); } }, ['Скачать копию ответов']),
         DEV.telegram ? h('a', { class: 'btn', href: DEV.telegram, target: '_blank', rel: 'noopener' }, ['Написать в Telegram']) : null
@@ -1257,7 +1258,9 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
   document.getElementById('consent').addEventListener('change', function (e) {
-    if (e.target.checked) document.getElementById('consent-wrap').classList.remove('has-error');
+    if (!e.target.checked) return;
+    document.getElementById('consent-wrap').classList.remove('has-error');
+    if (statusBox.dataset.reason === 'consent') statusBox.hidden = true; // галочку поставили — подсказка больше не нужна
   });
   form.addEventListener('submit', submit);
   form.addEventListener('keydown', function (e) {
