@@ -519,10 +519,6 @@
       h('h3', { id: 'h-' + id, tabindex: '-1' }, [title]),
       h('p', { class: 'screen-text' }, [text]),
       actions ? h('div', { class: 'screen-actions' }, actions) : null,
-      h('div', { class: 'screen-preview' }, [
-        h('h4', {}, ['Так по вашим ответам может выглядеть сайт']),
-        h('div', { class: 'pv-screen-mount', id: 'pv-mount-' + id })
-      ]),
       h('div', { class: 'submit-slot' })
     ]);
   }
@@ -554,10 +550,6 @@
     stepNav = h('div', { class: 'step-nav' }, [backBtn, h('span', { class: 'step-count', id: 'step-count' }), nextBtn]);
     form.appendChild(stepNav);
     form.appendChild(h('input', { type: 'text', name: 'company_website', class: 'hp', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' }));
-    if (window.BriefPreview) {
-      BriefPreview.mount(document.getElementById('pv-mount-break'));
-      BriefPreview.mount(document.getElementById('pv-mount-finish'));
-    }
     refresh();
     form.querySelectorAll('textarea').forEach(autosize);
     window.scrollTo(0, scrollY);
@@ -796,7 +788,6 @@
     (window.requestAnimationFrame || setTimeout)(function () {
       pvQueued = false;
       BriefPreview.update(answers, brandList());
-      if (cur === 'break' || cur === 'finish') BriefPreview.refit();
     });
   }
   function openPreview() {

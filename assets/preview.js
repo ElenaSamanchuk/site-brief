@@ -303,6 +303,13 @@
     if (!shift) scroll.style.animation = 'none'; else scroll.style.animation = '';
   }
 
+  // поворот телефона и изменение ширины — пересчитать, насколько прокручивать макет
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { mounts.forEach(function (x) { fit(x.node); }); }, 200);
+  });
+
   window.BriefPreview = {
     mount: function (node, opts) {
       if (!node) return;

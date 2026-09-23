@@ -250,8 +250,6 @@ body, .sec, .topbar, .submit-area, .opt-body, .inp { transition: background-colo
 .screen-text { margin: 0 0 20px; max-width: 600px; color: var(--ink-2); font-size: 16.5px; }
 .screen-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
 .screen-or { color: var(--muted); font-size: 14.5px; }
-.screen-preview { margin: 24px 0 0; padding: 20px; border-radius: 20px; background: var(--bg-2); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-.screen-preview h4 { grid-column: 1 / -1; margin: 0; font: 700 17px/1.3 var(--font-display); }
 .submit-slot .submit-area { box-shadow: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 22px 0 0; margin-top: 24px; background: transparent; }
 
 /* ═════════════ вопросы ═════════════ */
@@ -398,7 +396,7 @@ input[type="date"].inp { max-width: 240px; }
 .pv-logo { display: flex; align-items: center; gap: 6px; min-width: 0; margin-right: auto; font: 800 11.5px/1.1 var(--font-display); }
 .pv-logo b { flex: none; width: 20px; height: 20px; border-radius: 7px; display: grid; place-items: center; background: var(--pv-accent); color: var(--pv-on); font-size: 10.5px; }
 .pv-logo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pv-links { display: flex; gap: 7px; color: var(--pv-muted); font-size: 8.5px; white-space: nowrap; }
+.pv-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 7px; min-width: 0; height: 1.35em; overflow: hidden; color: var(--pv-muted); font-size: 8.5px; line-height: 1.35; white-space: nowrap; }
 .pv-icon-btn { position: relative; flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--pv-surface); }
 .pv-icon-btn svg { width: 11px; height: 11px; fill: none; stroke: var(--pv-ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .pv-icon-btn i { position: absolute; top: -3px; right: -3px; min-width: 11px; height: 11px; padding: 0 2px; border-radius: 6px; background: #e5484d; color: #fff; font: 700 7px/11px var(--font); font-style: normal; text-align: center; }
@@ -517,7 +515,8 @@ input[type="date"].inp { max-width: 240px; }
 }
 @media (max-width: 960px) {
   .layout { grid-template-columns: 1fr; gap: 0; padding-top: 20px; }
-  .pv-side { display: none; }
+  .pv-side { position: static; justify-self: center; width: 100%; max-width: 520px; margin-top: 36px; }
+  .pv-side-head b { font-size: 19px; }
   .pv-open { display: inline-flex; }
   .draft-note { display: none; }
   .nav-select-wrap { margin-left: 0; }
@@ -530,11 +529,19 @@ input[type="date"].inp { max-width: 240px; }
   .lead { font-size: 17px; }
   .btn-lg { width: 100%; }
   .hero-note { width: 100%; text-align: center; }
-  .process { grid-template-columns: 1fr 1fr; gap: 20px 14px; }
+  .process { grid-template-columns: 1fr; gap: 0; }
+  .process li { grid-template-columns: 40px minmax(0, 1fr); column-gap: 14px; row-gap: 1px; padding-bottom: 16px; font-size: 13.5px; line-height: 1.35; }
+  .process li:last-child { padding-bottom: 0; }
+  .process li:not(:last-child)::after { content: ""; position: absolute; left: 19px; top: 44px; bottom: 4px; width: 2px; border-radius: 2px; background: linear-gradient(var(--accent), color-mix(in srgb, var(--accent) 12%, transparent)); opacity: .5; }
+  .process .pr-ic { grid-row: span 2; width: 40px; height: 40px; border-radius: 12px; }
+  .process .pr-ic svg { width: 20px; height: 20px; }
+  .process b { margin-top: 1px; font-size: 15.5px; }
+  .quality { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 22px; }
+  .quality li { border-radius: 12px; padding: 9px 10px; font-size: 13px; line-height: 1.3; }
+  .quality li:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .sec { padding: 22px 18px 6px; border-radius: 20px; }
   .sec-head h3 { font-size: 22px; }
   .screen h3 { font-size: 24px; }
-  .screen-preview { grid-template-columns: 1fr; padding: 14px; }
   .submit-area { padding: 22px 18px; }
   .mrow { flex-direction: column; align-items: stretch; }
   .mrow-label { flex: none; }
@@ -552,7 +559,6 @@ input[type="date"].inp { max-width: 240px; }
 @media (max-width: 380px) {
   .hero h1 { font-size: 30px; }
   .mock-toast { right: 8px; left: 8px; }
-  .process { grid-template-columns: 1fr; }
   .pv-open span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -562,9 +568,6 @@ input[type="date"].inp { max-width: 240px; }
   .process li { opacity: 1; transform: none; }
   .pv-scroll { animation: none !important; }
 }
-
-/* на широких экранах макет уже виден сбоку — на итоговых экранах не дублируем */
-@media (min-width: 961px) { .screen-preview { display: none; } }
 
 /* ═════════════ стилевые схемы «Нравится / Не моё» ═════════════ */
 .styles { display: grid; grid-template-columns: repeat(auto-fill, minmax(186px, 1fr)); gap: 14px; }
