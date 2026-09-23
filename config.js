@@ -5,6 +5,6 @@
   formKey  — любое слово; то же значение впишите в свойство FORM_KEY скрипта (защита от спама-ботов)
 */
 window.BRIEF_CONFIG = {
-  endpoint: 'https://script.google.com/macros/s/AKfycbxLWhy4AJMGunSXwUeOa1FwRpD6jKCEbemQ70rwbCR5TGBk2Ge-ufcS8PLX2Cn7Rd54qQ/exec',
+  endpoint: 'https://script.google.com/macros/s/AKfycbw7mcb1V5OjZAXPU-B6v7UFcTOVUXn29FYLYKmUgcrHoQuGJQbLLHdKMtdpUnZmQowxvQ/exec',
   formKey: 'site-brief-2026'
 };
