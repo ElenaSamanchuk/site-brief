@@ -112,12 +112,12 @@ body, .sec, .topbar, .submit-area, .opt-body, .inp { transition: background-colo
 .mock-body { padding: 16px 18px; display: grid; gap: 14px; }
 .mk { animation: mk-rise var(--cycle) var(--ease) infinite both; }
 .mk-nav { display: flex; align-items: center; gap: 8px; animation-delay: .1s; }
-.mk-nav b { width: 54px; height: 12px; border-radius: 6px; background: var(--ink); margin-right: auto; }
+.mk-nav b { width: 54px; height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); margin-right: auto; }
 .mk-nav i { width: 30px; height: 7px; border-radius: 4px; background: var(--line-strong); }
 .mk-nav em { width: 44px; height: 18px; border-radius: 9px; background: var(--accent-soft); }
 .mk-hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px; align-items: center; }
 .mk-copy { display: grid; gap: 7px; justify-items: start; }
-.mk-copy b { height: 13px; border-radius: 6px; background: var(--ink); }
+.mk-copy b { height: 13px; border-radius: 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--ink) 38%, var(--surface)), color-mix(in srgb, var(--accent-2) 26%, var(--surface))); } /* «заголовок» мягко, без угольно-чёрного */
 .mk-t1 { width: 92%; animation-delay: .5s; } .mk-t2 { width: 66%; animation-delay: .65s; }
 .mk-copy i { height: 7px; border-radius: 4px; background: var(--line-strong); }
 .mk-p1 { width: 88%; animation-delay: .85s; } .mk-p2 { width: 70%; animation-delay: .95s; }
@@ -249,6 +249,11 @@ body, .sec, .topbar, .submit-area, .opt-body, .inp { transition: background-colo
 .screen h3 { margin: 0 0 8px; font-size: 28px; outline: none; }
 .screen-text { margin: 0 0 20px; max-width: 600px; color: var(--ink-2); font-size: 16.5px; }
 .screen-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+
+/* подсказка во встроенных браузерах мессенджеров */
+.inapp-hint { display: flex; align-items: flex-start; gap: 10px; padding: 10px 16px; background: var(--accent-soft); color: var(--ink-2); font-size: 13.5px; line-height: 1.4; }
+.inapp-hint span { flex: 1; max-width: 1248px; margin: 0 auto; }
+.inapp-close { flex: none; width: 26px; height: 26px; margin: -3px -4px 0 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
 
 /* ═════════════ чтобы заполнять было не скучно ═════════════ */
 .screen-meter { max-width: 520px; margin: 0 0 22px; padding: 14px 16px; border-radius: 16px; background: var(--bg-2); border: 1px solid var(--line); }

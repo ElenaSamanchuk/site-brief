@@ -1308,6 +1308,20 @@
     } else proc.classList.add('in-view');
   }
   loadDraft();
+  // вернулись к брифу — в шапке «Продолжить», а не «Начать»
+  var startBtnEl = document.getElementById('start-btn');
+  if (startBtnEl && Object.keys(answers).some(function (k) { return k.indexOf('__') < 0 && isFilled(answers[k]); })) startBtnEl.textContent = 'Продолжить заполнение →';
+  // во встроенных браузерах Telegram, Viber, Instagram нет вкладок: пример откроется поверх брифа — подскажем, что ответы не пропадут
+  var inApp = /Telegram|FBAN|FBAV|Instagram|Line\/|VKClient|Viber|; wv\)/i.test(navigator.userAgent) || !!window.TelegramWebview;
+  var hintOff = false;
+  try { hintOff = localStorage.getItem('site-brief-inapp-hint') === 'off'; } catch (e) { }
+  if (inApp && !hintOff) {
+    var bar = h('div', { class: 'inapp-hint', role: 'note' }, [
+      h('span', {}, [typo('Ответы сохраняются сами: если откроете пример работы, вернитесь кнопкой «Назад» — продолжите с того же места')]),
+      h('button', { type: 'button', class: 'inapp-close', 'aria-label': 'Скрыть подсказку', onclick: function () { bar.remove(); try { localStorage.setItem('site-brief-inapp-hint', 'off'); } catch (e) { } } }, ['×'])
+    ]);
+    document.body.insertBefore(bar, document.body.firstChild);
+  }
   var presetSphere = new URLSearchParams(location.search).get('sphere');
   if (presetSphere && !answers.b_sphere && fieldIndex.b_sphere.options.some(function (o) { return o[0] === presetSphere; })) answers.b_sphere = presetSphere;
   if (window.BriefPreview) {
