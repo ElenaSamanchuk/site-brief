@@ -188,6 +188,8 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   assert(selfLinks2.length === 0, 'и в вопросах внешние ссылки — в новой вкладке');
   await page.check('#consent');
   await shot(page, n + '-12-finish');
+  let submitId = '';
+  page.on('request', (r) => { if (r.method() === 'POST') { try { submitId = JSON.parse(r.postData() || '{}').id || submitId; } catch (e) { } } });
   await page.click('#submit-btn');
   await page.waitForSelector('#thanks, .status-error', { timeout: REAL ? 300000 : 60000 });
   if (!(await page.$('#thanks'))) {
@@ -196,6 +198,18 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   }
   await shot(page, n + '-13-thanks');
   console.log('✓ desktop: бриф отправлен');
+  if (REAL && submitId) {
+    // что дошло на самом деле — по номеру отправки (ответ Google может теряться, поэтому несколько попыток)
+    const endpoint = await page.evaluate(() => (new URLSearchParams(location.search).get('endpoint')) || (window.BRIEF_CONFIG || {}).endpoint);
+    for (let i = 0; i < 8; i++) {
+      try {
+        const j = await (await fetch(endpoint + '?status=' + encodeURIComponent(submitId))).json();
+        console.log('   доставка:', JSON.stringify(j));
+        if (j.state === 'done' || j.state === 'failed') break;
+      } catch (e) { console.log('   статус: ответ потерялся, ещё раз'); }
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+  }
 });
 
 if (REAL) { console.log('Живой прогон: бриф с файлами отправлен на настоящий скрипт'); process.exit(0); }

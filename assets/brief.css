@@ -249,6 +249,20 @@ body, .sec, .topbar, .submit-area, .opt-body, .inp { transition: background-colo
 .screen h3 { margin: 0 0 8px; font-size: 28px; outline: none; }
 .screen-text { margin: 0 0 20px; max-width: 600px; color: var(--ink-2); font-size: 16.5px; }
 .screen-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+
+/* ═════════════ чтобы заполнять было не скучно ═════════════ */
+.screen-meter { max-width: 520px; margin: 0 0 22px; padding: 14px 16px; border-radius: 16px; background: var(--bg-2); border: 1px solid var(--line); }
+.screen-meter:empty { display: none; }
+.meter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--ink-2); }
+.meter-head b { font: 800 22px/1 var(--font-display); color: var(--ink); }
+.meter-bar { height: 8px; margin: 10px 0 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.meter-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); animation: meter-in 1.1s var(--ease) both .2s; transform-origin: left; }
+@keyframes meter-in { from { transform: scaleX(0); } }
+.screen-meter p { margin: 0; font-size: 13.5px; color: var(--muted); }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 70; width: max-content; max-width: min(92vw, 480px); padding: 11px 16px; border-radius: 14px; background: var(--ink); color: var(--bg); font: 600 14px/1.4 var(--font); text-align: center; box-shadow: var(--shadow-lg); pointer-events: none; opacity: 0; transform: translate(-50%, 14px); transition: opacity .3s ease, transform .35s var(--ease); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.confetti { position: fixed; inset: 0; z-index: 80; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; width: 8px; height: 12px; border-radius: 2px; }
 .screen-or { color: var(--muted); font-size: 14.5px; }
 .submit-slot .submit-area { box-shadow: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 22px 0 0; margin-top: 24px; background: transparent; }
 
@@ -514,6 +528,7 @@ input[type="date"].inp { max-width: 240px; }
   .process::before { display: none; }
 }
 @media (max-width: 960px) {
+  .toast { bottom: calc(96px + env(safe-area-inset-bottom)); }
   .layout { grid-template-columns: 1fr; gap: 0; padding-top: 20px; }
   .pv-side { position: static; justify-self: center; width: 100%; max-width: 520px; margin-top: 36px; }
   .pv-side-head b { font-size: 19px; }

@@ -323,6 +323,13 @@
       var sig = JSON.stringify([m.name, m.brands, m.sphereKey, m.style, m.accent, m.offer, m.cta, m.type, m.sells, m.blocks, m.nav, m.domain, m.chat, m.points, m.aggregators, m.eventTypes, m.calc, m.stats]);
       if (sig === lastSig) return;
       var changed = !!lastSig;
+      // какие блоки появились в макете от последнего ответа — для подсказки «в макете новый блок»
+      var added = [];
+      if (changed) m.blocks.forEach(function (k) {
+        if (lastKeys[k]) return;
+        var n = block(k, m), t = n && n.querySelector('h5');
+        if (t && t.firstChild) added.push(String(t.firstChild.textContent || '').trim());
+      });
       mounts = mounts.filter(function (x) { return document.body.contains(x.node); });
       mounts.forEach(function (x) {
         x.node.innerHTML = '';
@@ -334,7 +341,7 @@
       lastKeys = {};
       m.blocks.forEach(function (k) { lastKeys[k] = true; });
       lastName = m.name;
-      if (changed && onChange) onChange();
+      if (changed && onChange) onChange({ added: added.filter(Boolean) });
     },
     refit: function () { mounts.forEach(function (x) { fit(x.node); }); }
   };

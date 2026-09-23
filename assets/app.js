@@ -518,6 +518,7 @@
       h('div', { class: 'screen-mark', 'aria-hidden': 'true' }, ['✓']),
       h('h3', { id: 'h-' + id, tabindex: '-1' }, [title]),
       h('p', { class: 'screen-text' }, [text]),
+      h('div', { class: 'screen-meter', id: 'meter-' + id }),
       actions ? h('div', { class: 'screen-actions' }, actions) : null,
       h('div', { class: 'submit-slot' })
     ]);
@@ -567,11 +568,15 @@
     opts = opts || {};
     var list = stepList();
     var from = indexOfStep(list, cur), to = indexOfStep(list, id);
+    var stepDone = false;
     if (!opts.back && !opts.force && to > from && list[from] && list[from].kind === 'sec') {
       var bad = validateSection(list[from].s);
       if (bad) { focusField(bad); return; }
+      stepDone = true;
     }
     cur = id;
+    if (stepDone) cheer(list, from);
+    if ((id === 'break' || id === 'finish') && to > from) setTimeout(confetti, 250);
     if (pendingRender) { pendingRender = false; render(); } else refresh();
     var top = document.getElementById('main').getBoundingClientRect().top + window.scrollY - 70;
     if (window.scrollY > top || !opts.stay) window.scrollTo({ top: Math.max(0, top), behavior: opts.instant ? 'auto' : 'smooth' });
@@ -580,6 +585,83 @@
     form.querySelectorAll('#sec-' + id + ' textarea').forEach(autosize);
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveDraft, 200);
+  }
+
+  /* ───────── чтобы заполнять было не скучно ───────── */
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var toastEl = null, toastQueue = [], toastBusy = false;
+  function toast(text) {
+    toastQueue.push(text);
+    if (toastQueue.length > 2) toastQueue.splice(0, toastQueue.length - 2);
+    if (!toastBusy) nextToast();
+  }
+  function nextToast() {
+    var text = toastQueue.shift();
+    if (!text) { toastBusy = false; return; }
+    toastBusy = true;
+    if (!toastEl) {
+      toastEl = h('div', { class: 'toast', role: 'status', 'aria-live': 'polite' });
+      document.body.appendChild(toastEl);
+    }
+    toastEl.textContent = typo(text);
+    toastEl.classList.remove('show'); void toastEl.offsetWidth; toastEl.classList.add('show');
+    setTimeout(function () { toastEl.classList.remove('show'); setTimeout(nextToast, 320); }, 2600);
+  }
+  function plural(n, one, few, many) {
+    var m10 = n % 10, m100 = n % 100;
+    return n + ' ' + (m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many);
+  }
+  var CHEERS = ['Отлично 👍', 'Так держать ✨', 'Супер, идём дальше', 'Уже видно, каким будет сайт', 'Ещё чуть-чуть 💪', 'Почти всё'];
+  function cheer(list, from) {
+    var part = list[from].part;
+    var steps = list.filter(function (x) { return x.part === part && x.kind === 'sec'; });
+    var rest = list.filter(function (x, i) { return i > from && x.part === part && x.kind === 'sec'; });
+    if (!rest.length) return; // конец части — там свой экран и конфетти
+    var done = steps.length - rest.length;
+    var min = rest.reduce(function (n, x) { return n + minutes(x.s); }, 0);
+    var lead = part === 1 && done === Math.ceil(steps.length / 2) ? 'Половина главного позади 🔥' : CHEERS[(done - 1) % CHEERS.length];
+    toast(lead + ' · осталось ' + plural(rest.length, 'шаг', 'шага', 'шагов') + ', ≈ ' + min + ' мин');
+  }
+  var addedBuf = [], addedTimer = null;
+  function blocksAdded(titles) {
+    titles.forEach(function (t) { if (addedBuf.indexOf(t) < 0) addedBuf.push(t); });
+    clearTimeout(addedTimer);
+    addedTimer = setTimeout(function () {
+      var t = addedBuf; addedBuf = [];
+      if (!t.length) return;
+      toast('✨ ' + (t.length === 1 ? 'В макете новый блок: ' + t[0] : 'В макете новые блоки: ' + t.slice(0, 2).join(', ') + (t.length > 2 ? ' и ещё ' + (t.length - 2) : '')));
+    }, 700);
+  }
+  // «Точность предложения»: сколько видимых вопросов отвечено, главное весит больше деталей
+  function accuracy() {
+    var all = { 1: 0, 2: 0 }, got = { 1: 0, 2: 0 };
+    SCHEMA.forEach(function (s) {
+      s.fields.forEach(function (f) {
+        if (f.type === 'info' || !visible(f)) return;
+        all[s.part] = (all[s.part] || 0) + 1;
+        if (isFilled(answers[f.id])) got[s.part] = (got[s.part] || 0) + 1;
+      });
+    });
+    var p1 = all[1] ? got[1] / all[1] : 0, p2 = all[2] ? got[2] / all[2] : 0;
+    return Math.min(100, Math.round((Math.min(1, p1 * 1.15) * 0.7 + Math.min(1, p2 * 1.25) * 0.3) * 100));
+  }
+  function confetti() {
+    if (reduceMotion || !document.body.animate) return;
+    var colors = ['#0071e3', '#5856d6', '#34c759', '#ff9f0a', '#ff375f', '#ffd60a'];
+    var layer = h('div', { class: 'confetti', 'aria-hidden': 'true' });
+    document.body.appendChild(layer);
+    var W = window.innerWidth, H = window.innerHeight;
+    for (var i = 0; i < 90; i++) {
+      var p = h('i', { style: 'background:' + colors[i % colors.length] + ';left:' + (W / 2 + (Math.random() - .5) * W * .3) + 'px;top:' + (H * .35) + 'px;' + (i % 3 ? '' : 'border-radius:50%;') });
+      layer.appendChild(p);
+      var dx = (Math.random() - .5) * W * .9, dy = -(H * .25 + Math.random() * H * .3), rot = (Math.random() - .5) * 900;
+      p.animate([
+        { transform: 'translate(0,0) rotate(0)', opacity: 1 },
+        { transform: 'translate(' + dx * .6 + 'px,' + dy + 'px) rotate(' + rot / 2 + 'deg)', opacity: 1, offset: .35 },
+        { transform: 'translate(' + dx + 'px,' + (H * .7) + 'px) rotate(' + rot + 'deg)', opacity: 0 }
+      ], { duration: 1500 + Math.random() * 900, easing: 'cubic-bezier(.2,.6,.3,1)', fill: 'forwards' });
+    }
+    setTimeout(function () { layer.remove(); }, 2600);
   }
 
   /* ───────── бегущая строка работ ───────── */
@@ -775,9 +857,22 @@
     progressBar.parentNode.setAttribute('aria-valuenow', pct);
     var st2 = list.filter(function (x) { return x.part === 2 && x.kind === 'sec'; });
     schedulePreview();
-    progressText.textContent = step.kind === 'sec'
+    var acc = accuracy();
+    progressText.textContent = (step.kind === 'sec'
       ? (step.part === 1 ? 'Главное · шаг ' + (indexOfStep(partSteps, cur) + 1) + ' из ' + partSteps.length : 'Детали · шаг ' + (indexOfStep(st2, cur) + 1) + ' из ' + st2.length)
-      : step.title;
+      : step.title) + ' · точность предложения ' + acc + '%';
+    var meter = document.getElementById('meter-' + cur);
+    if (meter) {
+      meter.innerHTML = '';
+      meter.appendChild(h('div', { class: 'meter-head' }, [
+        h('span', {}, ['Точность предложения']),
+        h('b', {}, [acc + '%' + (acc >= 90 ? ' 🎯' : '')])
+      ]));
+      meter.appendChild(h('div', { class: 'meter-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(acc), 'aria-label': 'Точность предложения' }, [h('i', { style: 'width:' + acc + '%' })]));
+      meter.appendChild(h('p', {}, [cur === 'break'
+        ? (acc < 90 ? 'Ответите на детали — поднимется почти до 100%, а вопросов на созвоне будет меньше' : 'Отличный задел — можно отправлять')
+        : (acc >= 90 ? 'Ответов хватит для точного предложения' : 'Можно отправлять — недостающее уточню на созвоне')]));
+    }
   }
 
   /* ───────── живой макет ───────── */
@@ -1105,14 +1200,17 @@
     }
   }
   async function arrived(url, id) {
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 8; i++) {
       await wait(i ? 2500 : 800);
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, 20000); // Google иногда отвечает по 20–30 секунд — не ждём зависший ответ, спрашиваем снова
       try {
-        var res = await fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'status=' + encodeURIComponent(id), { cache: 'no-store' });
+        var res = await fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'status=' + encodeURIComponent(id), { cache: 'no-store', signal: ctrl.signal });
         var j = await res.json();
         if (j.state === 'done' || j.state === 'processing') return true;
         if (j.state === 'unknown' || j.state === 'failed') return false;
       } catch (e) { /* и этот ответ мог потеряться — спросим ещё */ }
+      finally { clearTimeout(timer); }
     }
     return false;
   }
@@ -1141,6 +1239,7 @@
     var thanks = document.getElementById('thanks');
     thanks.scrollIntoView({ block: 'center' });
     thanks.focus({ preventScroll: true });
+    setTimeout(confetti, 300);
   }
 
   /* ───────── wiring ───────── */
@@ -1206,7 +1305,10 @@
     var pvBtn = document.getElementById('pv-open');
     if (pvBtn) {
       pvBtn.addEventListener('click', openPreview);
-      BriefPreview.onChange(function () { pvBtn.classList.remove('bump'); void pvBtn.offsetWidth; pvBtn.classList.add('bump'); });
+      BriefPreview.onChange(function (info) {
+        pvBtn.classList.remove('bump'); void pvBtn.offsetWidth; pvBtn.classList.add('bump');
+        if (info && info.added && info.added.length) blocksAdded(info.added);
+      });
     }
   }
   renderWorks();
