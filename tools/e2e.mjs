@@ -108,7 +108,7 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await pick(page, 'f_matrix::jobs', 'now');
   await pick(page, 'f_matrix::b2b', 'later');
   await pick(page, 'f_matrix::quiz', 'later');
-  await pick(page, 'f_matrix::tgbot', 'no');
+  await pick(page, 'f_bot', 'site');
   await page.waitForTimeout(300);
   const pvBlocks = await page.$$eval('#pv-side-mount .pv-block h5', (els) => els.map((e) => e.firstChild.textContent));
   assert(pvBlocks.includes('Меню дня') && pvBlocks.includes('Бронь столика') && pvBlocks.some((t) => t.startsWith('Наши адреса')), 'в макете блоки из ответов: ' + pvBlocks.join(', '));
@@ -129,6 +129,13 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
     { name: 'меню.csv', mimeType: 'text/csv', buffer: Buffer.from('блюдо;цена\nборщ;4.5') }
   ]);
   await shot(page, n + '-06-brand', true);
+  await next(page);
+  assert((await current(page)) === 'sec-materials', 'в главном — шаг «Тексты и картинки»');
+  await pick(page, 'ct_texts', 'partial');
+  await pick(page, 'ct_images', 'some');
+  await pick(page, 'ai_gen', 'site');
+  await pick(page, 'ai_gen', 'ads');
+  await shot(page, n + '-06b-materials', true);
   await next(page);
   await pick(page, 'g_priority', 'balance');
   await pick(page, 'g_deadline', 'month');
@@ -166,7 +173,6 @@ await run({ width: 1280, height: 900 }, 'desktop', async (page, n) => {
   await next(page);
   assert((await current(page)) === 'sec-content', 'заказ через агрегаторы — шаг «Заказ» пропущен');
   await pick(page, 'ct_ready', 'help');
-  await pick(page, 'ct_texts', 'partial');
   if (REAL) await page.setInputFiles('#in-ct_files2', realFiles(/Тексты|Прайс/));
   await next(page);
   assert((await current(page)) === 'sec-voice', 'шаг «Голос и история»');

@@ -58,6 +58,7 @@ var KP = {
     loyalty: { title: 'Бонусная программа, личный кабинет', rate: null, days: 5 },
     tgbot: { title: 'Telegram-бот: заявки, запись, уведомления клиентам', rate: 0, days: 6 },
     chat: { title: 'Кнопки мессенджеров и онлайн-чат', rate: 0, days: 1 },
+    aibot: { title: 'ИИ-помощник на сайте: отвечает на частые вопросы, вопросы и заявки — в Telegram', rate: null, days: 3 },
     subscribe: { title: 'Сбор контактов для рассылок', rate: 0, days: 1 },
     qr: { title: 'QR-коды для точек: меню, отзывы, Wi-Fi', rate: 0, days: 1 },
     a11y: { title: 'Версия для слабовидящих', rate: 0, days: 2 },
@@ -78,7 +79,8 @@ var KP = {
     banners: 'Баннеры и сторис для соцсетей и рекламы',
     print: 'Печатное меню, прайс или буклет',
     qr: 'Таблички с QR-кодами',
-    flyers: 'Листовки и вывески'
+    flyers: 'Листовки и вывески',
+    ai_ads: 'Креативы для рекламы и соцсетей с помощью ИИ'
   },
   // что уточнить на созвоне, если клиент не ответил
   keyQuestions: {
@@ -246,6 +248,8 @@ function buildProposal(data) {
     if (has('o_extra', 'repeat')) add('orderRepeat', 1);
     if (has('o_extra', 'certs')) add('certs', 1);
   }
+  if (a.f_bot === 'site' || a.f_bot === 'both') add('aibot', 1);
+  if (a.f_bot === 'tg' || a.f_bot === 'both') add('tgbot', 1);
   Object.keys(fm).forEach(function (k) {
     if (!M[k] || added[k]) return;
     if (fm[k] === 'now') add(k, 1);
@@ -267,7 +271,7 @@ function buildProposal(data) {
   if (a.l_privacy !== 'yes' && base_('privacy')) add('privacy', 1);
 
   /* ── платформа (внутреннее решение) ── */
-  var customKeys = ['gsheet', 'daily', 'banqcalc', 'calc', 'quiz', 'game', 'tgbot', 'booking', 'pos_sync', 'map', 'delivery_zones', 'remind', 'lms'];
+  var customKeys = ['gsheet', 'daily', 'banqcalc', 'calc', 'quiz', 'game', 'tgbot', 'aibot', 'booking', 'pos_sync', 'map', 'delivery_zones', 'remind', 'lms'];
   var custom = customKeys.filter(function (k) { return added[k]; });
   var wantsEdit = ['content', 'all'].indexOf(a.p_edit) >= 0 || ['self', 'staff'].indexOf(a.c_content_owner) >= 0 || a.sp_support === 'self';
   var platform, platformWhy;
@@ -397,6 +401,7 @@ function buildProposal(data) {
   model.push({ t: 'table', head: ['Этап', 'Что входит', 'Срок', 'Стоимость'], rows: rows });
   model.push({ t: 'p', text: 'Рыночная стоимость такого объёма — ___ BYN. Для вас — партнёрская цена на условиях ниже' });
   var extras = arr('d_creatives').filter(function (x) { return KP.extras[x]; }).map(function (x) { return KP.extras[x] + ' — ___ BYN'; });
+  if (has('ai_gen', 'ads')) extras.push(KP.extras.ai_ads + ' — ___ BYN');
   if (noLogo.length) extras.push('Логотип' + (multiBrand ? ' ' + names(noLogo) : '') + ': обновление или разработка — ___ BYN');
   if (extras.length) {
     model.push({ t: 'p', text: 'По желанию:' });
@@ -445,7 +450,7 @@ function buildProposal(data) {
   model.push({ t: 'ul', items: regular });
 
   var notIncluded = [];
-  if (a.m_photos === 'none' || a.m_photos === 'amateur' || a.ct_shoot === 'yes' || a.e_media === 'need') notIncluded.push('Фотосъёмка — у фотографа по его прайсу, помогу подобрать');
+  if (a.m_photos === 'none' || a.m_photos === 'amateur' || a.ct_images === 'none' || a.ct_shoot === 'yes' || a.e_media === 'need') notIncluded.push('Фотосъёмка — у фотографа по его прайсу, помогу подобрать');
   notIncluded.push('Бюджет на рекламу');
   if (added.lang) notIncluded.push('Перевод текстов на другие языки');
   if (added.pos_sync || added.bookingService || added.loyalty || added.lms) notIncluded.push('Абонентская плата сторонних сервисов, если понадобятся');
@@ -482,7 +487,10 @@ function buildProposal(data) {
   if (typeAdvised) inLines.push('Формат клиент не выбрал — предложено: ' + { taplink: 'мини-сайт', landing: 'одна страница', multi: 'несколько страниц', catalog: 'каталог с заявкой', shop: 'магазин с оплатой' }[type]);
   notes.forEach(function (n) { inLines.push(n); });
   if (a.m_updates === 'daily') inLines.push('Цены или меню меняются каждый день — обновление без тебя: таблица или бот');
-  if (a.m_photos === 'none' || a.m_photos === 'amateur') inLines.push('Хороших фото нет — заложить съёмку или подбор' + (a.ct_ai === 'yes' || a.ct_ai === 'decor' ? '; клиент не против ИИ-изображений' + (a.ct_ai === 'decor' ? ' для фонов и иллюстраций' : '') : ''));
+  var aiSite = a.ct_ai === 'yes' || a.ct_ai === 'decor' || has('ai_gen', 'site');
+  if (a.m_photos === 'none' || a.m_photos === 'amateur' || a.ct_images === 'none' || a.ct_images === 'some') inLines.push('Хороших фото мало или нет — заложить съёмку или подбор' + (aiSite ? '; клиент не против ИИ-изображений для сайта' : ''));
+  if (has('ai_gen', 'ads')) inLines.push('Клиент хочет ИИ-креативы для рекламы и соцсетей — предложить пакет');
+  if (has('ai_gen', 'texts')) inLines.push('Клиент не против черновиков текстов с ИИ — копирайтинг быстрее');
   if (noLogo.length) inLines.push('Логотипа нет или хотят обновить' + (multiBrand ? ': ' + names(noLogo) : ''));
   if (a.ct_ready === 'long') inLines.push('Материалы клиент будет собирать долго — сроки считать от их готовности, начать со структуры');
   if (a.ct_ready === 'help') inLines.push('Клиенту нужна помощь с материалами — заложить тексты, съёмку или оцифровку меню');

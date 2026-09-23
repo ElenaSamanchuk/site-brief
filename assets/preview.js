@@ -171,7 +171,7 @@
       on: lum(accent) > 0.45 ? '#141414' : '#ffffff', name: name, brands: names, offer: offer,
       cta: ctaBy[main] || (a.bk_need === 'slots' || a.bk_need === 'form' ? (food ? 'Забронировать стол' : 'Записаться') : S.cta),
       type: a.s_type || '', sells: sells, blocks: blocks, nav: nav.slice(0, 3), domain: domain,
-      chat: want('chat') || want('tgbot'), points: { '1': 1, '2-3': 3, '4-10': 6, '10+': 8 }[a.b_points] || 1,
+      chat: want('chat') || want('tgbot') || ['site', 'tg', 'both'].indexOf(a.f_bot) >= 0, points: { '1': 1, '2-3': 3, '4-10': 6, '10+': 8 }[a.b_points] || 1,
       aggregators: arr(a.fd_aggregators), eventTypes: arr(a.e_types), calc: a.e_calc === 'yes' || want('calc'),
       stats: { type: TYPE_LABEL[a.s_type] || 'Подберу', pages: pages || nav.length + 1, now: base.length + fmNow, later: fmLater, style: T.label, sections: blocks.length + 2 }
     };
