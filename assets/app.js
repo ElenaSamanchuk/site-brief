@@ -905,13 +905,19 @@
   function reportDoc(c) {
     var d = c.display;
     var title = d.b_name || d.c_name || 'без названия';
+    var sub = [d.b_sphere, c.brands.length > 1 ? c.brands.map(function (b) { return b[1]; }).join(', ') : ''].filter(Boolean).join(' · ');
+    var contacts = [d.c_name, d.c_phone, d.c_messenger, d.c_email].filter(Boolean).map(esc).join(' &nbsp;·&nbsp; ');
     return '<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-      '<title>Бриф — ' + esc(title) + '</title></head><body style="margin:0;background:#f5f5f7">' +
-      '<div style="max-width:760px;margin:0 auto;padding:32px 20px;background:#fff">' +
-      '<p style="font:13px Arial,sans-serif;color:#6e6e73;margin:0">Бриф на сайт · ' + new Date().toLocaleString('ru-RU') + (tag ? ' · ' + esc(tag) : '') + '</p>' +
-      '<h1 style="font:700 26px/1.2 Arial,sans-serif;color:#1d1d1f;margin:6px 0 4px">' + esc(title) + '</h1>' +
-      '<p style="font:15px Arial,sans-serif;color:#1d1d1f;margin:0 0 8px">' + [d.c_name, d.c_role, d.c_phone, d.c_messenger].filter(Boolean).map(esc).join(' · ') + '</p>' +
-      reportBody(c) + '</div></body></html>';
+      '<title>Бриф — ' + esc(title) + '</title></head><body style="margin:0;background:#ffffff">' +
+      '<div style="max-width:760px;margin:0 auto;padding:0 0 32px;background:#fff">' +
+      '<div style="background:#0071e3;color:#ffffff;padding:22px 24px;border-radius:0 0 16px 16px">' +
+      '<div style="font:12px Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;opacity:.85">Бриф на сайт · ' + esc(new Date().toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })) + (tag ? ' · #' + esc(tag) : '') + '</div>' +
+      '<div style="font:700 26px/1.2 Arial,sans-serif;margin-top:6px">' + esc(title) + '</div>' +
+      (sub ? '<div style="font:14px/1.4 Arial,sans-serif;margin-top:4px;opacity:.92">' + esc(sub) + '</div>' : '') +
+      '</div>' +
+      '<div style="padding:16px 24px 0">' +
+      (contacts ? '<p style="font:15px/1.5 Arial,sans-serif;color:#1d1d1f;margin:0 0 4px;padding:12px 14px;background:#f5f5f7;border-radius:12px">' + contacts + '</p>' : '') +
+      reportBody(c) + '</div></div></body></html>';
   }
   function summaryOf(c) {
     var d = c.display;
@@ -1039,7 +1045,7 @@
       for (var k in files) {
         for (var i = 0; i < files[k].length; i++) {
           var file = files[k][i];
-          list.push({ field: k, fieldLabel: fieldIndex[k].label, name: file.name, type: file.type || 'application/octet-stream', size: file.size, data: await readB64(file) });
+          list.push({ field: k, fieldLabel: fieldIndex[k].label, stepTitle: fieldIndex[k].section.title, name: file.name, type: file.type || 'application/octet-stream', size: file.size, data: await readB64(file) });
         }
       }
       var payload = {
@@ -1132,8 +1138,9 @@
         DEV.telegram ? h('a', { class: 'btn', href: DEV.telegram, target: '_blank', rel: 'noopener' }, ['Написать в Telegram']) : null
       ])
     ]));
-    window.scrollTo({ top: 0 });
-    document.getElementById('thanks').focus();
+    var thanks = document.getElementById('thanks');
+    thanks.scrollIntoView({ block: 'center' });
+    thanks.focus({ preventScroll: true });
   }
 
   /* ───────── wiring ───────── */

@@ -15,11 +15,16 @@ var MAIL_ATTACH_LIMIT = 18 * 1024 * 1024;
 var TG_FILE_LIMIT = 45 * 1024 * 1024;
 
 var SEEN_TTL = 6 * 60 * 60; // сколько помнить номер отправки, сек
+var MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 
 function doGet(e) {
   // страница спрашивает «дошёл ли бриф», если ответ на отправку потерялся по дороге
   var id = sid_(e && e.parameter && e.parameter.status);
-  if (id) return json_({ ok: true, state: CacheService.getScriptCache().get('brief:' + id) || 'unknown' });
+  if (id) {
+    var c = cache_();
+    var detail = c ? c.get('brief-d:' + id) : null;
+    return json_({ ok: true, state: (c && c.get('brief:' + id)) || 'unknown', detail: detail ? JSON.parse(detail) : null });
+  }
   return json_({ ok: true, service: 'site-brief' });
 }
 
@@ -35,32 +40,39 @@ function doPost(e) {
   if (P.FORM_KEY && data.key !== P.FORM_KEY) return json_({ ok: false, error: 'Неверный ключ формы' });
 
   // Google иногда теряет ответ по дороге к странице, и она отправляет бриф ещё раз с тем же номером — не дублируем
-  var sid = sid_(data.id), cache = CacheService.getScriptCache();
-  if (sid) {
-    var lock = LockService.getScriptLock(), seen = null;
-    var locked = lock.tryLock(5000);
+  var sid = sid_(data.id), cache = cache_();
+  if (sid && cache) {
+    var seen = null;
     try {
-      seen = cache.get('brief:' + sid);
-      if (!seen || seen === 'failed') cache.put('brief:' + sid, 'processing', SEEN_TTL);
-    } finally {
-      if (locked) lock.releaseLock();
-    }
+      var lock = LockService.getScriptLock();
+      var locked = lock.tryLock(5000);
+      try {
+        seen = cache.get('brief:' + sid);
+        if (!seen || seen === 'failed') cache.put('brief:' + sid, 'processing', SEEN_TTL);
+      } finally {
+        if (locked) lock.releaseLock();
+      }
+    } catch (err) { /* без защиты от дублей, но бриф важнее */ }
     if (seen && seen !== 'failed') return json_({ ok: true, repeat: true });
   }
 
   var s = data.summary || {};
   var who = s.company || s.name || 'без имени';
-  var stamp = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
+  var now = new Date();
+  var stamp = Utilities.formatDate(now, TZ, 'yyyy-MM-dd HH:mm');
+  var when = ruDate_(now);
   var title = 'Бриф ' + stamp + ' — ' + who;
-  var res = { drive: false, telegram: false, email: false, errors: [] };
+  var res = { drive: false, telegram: false, tgFiles: 0, email: false, mailFiles: 0, errors: [] };
 
   // 1. Папка на Диске: файлы клиента, бриф, ответы
   var folder = null, folderUrl = '', uploads = [];
-  var briefBlob = Utilities.newBlob(data.reportHtml || '', 'text/html', safeName_('Бриф — ' + who) + '.html');
+  var briefHtml = Utilities.newBlob(data.reportHtml || '', 'text/html', safeName_('Бриф — ' + who) + '.html');
+  var brief = pdf_(briefHtml); // PDF открывается прямо в Telegram и почте на телефоне
   try {
     folder = rootFolder_(P).createFolder(safeName_(title));
     folderUrl = folder.getUrl();
-    folder.createFile(briefBlob);
+    folder.createFile(briefHtml);
+    if (brief !== briefHtml) folder.createFile(brief);
     folder.createFile(Utilities.newBlob(
       JSON.stringify({ summary: s, answers: data.answers, display: data.display, meta: data.meta }, null, 2),
       'application/json', 'answers.json'
@@ -72,68 +84,72 @@ function doPost(e) {
   (data.files || []).forEach(function (f) {
     try {
       var blob = Utilities.newBlob(Utilities.base64Decode(f.data), f.type || 'application/octet-stream', safeName_(f.name));
+      uploads.push({ blob: blob, size: f.size || 0, label: f.fieldLabel || '', step: f.stepTitle || '' });
       if (folder) folder.createFile(blob);
-      uploads.push({ blob: blob, size: f.size || 0, label: f.fieldLabel || '' });
     } catch (err) {
       res.errors.push('Файл ' + f.name + ': ' + err);
     }
   });
 
   // 2. Черновик КП (Proposal.gs)
-  var kp = null, kpHtml = null, kpDocUrl = '';
+  var kp = null, kpFile = null, kpDocUrl = '';
   try {
     kp = buildProposal(data);
-    kpHtml = Utilities.newBlob(renderProposalHtml(kp), 'text/html', safeName_('КП черновик — ' + who) + '.html');
+    var kpHtml = Utilities.newBlob(renderProposalHtml(kp), 'text/html', safeName_('КП черновик — ' + who) + '.html');
+    kpFile = pdf_(kpHtml);
     if (folder) {
-      folder.createFile(kpHtml);
+      folder.createFile(kpFile);
       kpDocUrl = createProposalDoc(kp, 'КП — ' + kp.titleShort + ' — ' + stamp, folder);
     }
   } catch (err) {
     res.errors.push('КП: ' + err);
   }
 
-  // 3. Telegram
+  // 3. Telegram: сводка, затем альбом — бриф, КП и все файлы клиента
   if (P.TG_TOKEN && P.TG_CHAT_ID) {
-    try {
-      var text = telegramText_(data, kp, folderUrl, kpDocUrl, stamp);
-      P.TG_CHAT_ID.split(',').map(trim_).filter(String).forEach(function (chat) {
-        tg_(P.TG_TOKEN, 'sendMessage', { chat_id: chat, text: text, parse_mode: 'HTML', disable_web_page_preview: true });
-        tgDoc_(P.TG_TOKEN, chat, briefBlob, 'Бриф целиком');
-        if (kpHtml) tgDoc_(P.TG_TOKEN, chat, kpHtml, 'Черновик КП — суммы впиши сама');
-        uploads.forEach(function (u) {
-          if (u.size < TG_FILE_LIMIT) tgDoc_(P.TG_TOKEN, chat, u.blob, u.label);
-        });
-      });
-      res.telegram = true;
-    } catch (err) {
-      res.errors.push('Telegram: ' + err);
-    }
+    var items = [{ blob: brief, caption: '📋 Бриф целиком — все ответы клиента' }];
+    if (kpFile) items.push({ blob: kpFile, caption: '💼 Черновик КП — суммы впиши сама' });
+    uploads.forEach(function (u) {
+      if (u.size < TG_FILE_LIMIT) items.push({ blob: u.blob, caption: '📎 ' + u.blob.getName() + (u.step ? ' · шаг «' + u.step + '»' : '') });
+      else res.errors.push('Файл ' + u.blob.getName() + ' больше 45 МБ — только на Диске');
+    });
+    var text = telegramText_(data, kp, folderUrl, kpDocUrl, when, uploads.length);
+    P.TG_CHAT_ID.split(',').map(trim_).filter(String).forEach(function (chat) {
+      try {
+        tgText_(P.TG_TOKEN, chat, text);
+        res.telegram = true;
+      } catch (err) {
+        res.errors.push('Telegram, сводка: ' + err);
+      }
+      res.tgFiles = tgFiles_(P.TG_TOKEN, chat, items, res.errors, folderUrl);
+      if (res.tgFiles) res.telegram = true;
+    });
   }
 
   // 4. Почта
   try {
     var to = P.EMAIL_TO || Session.getEffectiveUser().getEmail();
-    var attachments = [briefBlob];
-    if (kpHtml) attachments.push(kpHtml);
-    var sum = 0;
+    var base = [brief].concat(kpFile ? [kpFile] : []);
+    var attachments = base.slice(), sum = 0;
     uploads.forEach(function (u) {
       if (sum + u.size <= MAIL_ATTACH_LIMIT) { attachments.push(u.blob); sum += u.size; }
     });
     var mail = {
       to: to,
-      subject: title,
-      htmlBody: emailHtml_(data, kp, folderUrl, kpDocUrl, uploads.length, attachments.length - (kpHtml ? 2 : 1)),
+      subject: '📝 Новый бриф на сайт — ' + who + (s.brands ? ' (' + s.brands + ')' : ''),
+      htmlBody: emailHtml_(data, kp, folderUrl, kpDocUrl, when, uploads.length, attachments.length - base.length),
       attachments: attachments,
       name: 'Бриф на сайт'
     };
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email || '')) mail.replyTo = s.email;
     try {
       MailApp.sendEmail(mail);
+      res.mailFiles = attachments.length - base.length;
     } catch (bigErr) {
       // не прошло с файлами — шлём без них, файлы остаются в папке на Диске
       res.errors.push('Почта с вложениями: ' + bigErr);
-      mail.attachments = [briefBlob].concat(kpHtml ? [kpHtml] : []);
-      mail.htmlBody = '<p style="color:#d70015"><b>Файлы клиента не влезли в письмо — они в папке на Диске: ' + (folderUrl ? '<a href="' + folderUrl + '">открыть</a>' : 'папка не создалась, см. Telegram') + '</b></p>' + mail.htmlBody;
+      mail.attachments = base;
+      mail.htmlBody = emailHtml_(data, kp, folderUrl, kpDocUrl, when, uploads.length, 0);
       MailApp.sendEmail(mail);
     }
     res.email = true;
@@ -155,98 +171,257 @@ function doPost(e) {
   if (res.errors.length) console.warn(res.errors.join('\n'));
   var ok = res.telegram || res.email;
   if (ok && res.errors.length && res.telegram) {
-    try {
-      P.TG_CHAT_ID.split(',').map(trim_).filter(String).forEach(function (chat) {
-        tg_(P.TG_TOKEN, 'sendMessage', { chat_id: chat, text: '⚠️ Бриф принят, но были ошибки:\n' + esc_(res.errors.join('\n')).slice(0, 3500), parse_mode: 'HTML' });
-      });
-    } catch (err) { /* уже сообщили, что могли */ }
+    P.TG_CHAT_ID.split(',').map(trim_).filter(String).forEach(function (chat) {
+      try {
+        tg_(P.TG_TOKEN, 'sendMessage', { chat_id: chat, text: '⚠️ Бриф «' + who + '» принят, но не всё прошло гладко:\n\n' + res.errors.join('\n').slice(0, 3500) + (folderUrl ? '\n\nВсё, что пришло, — в папке: ' + folderUrl : '') });
+      } catch (err) { /* уже сообщили, что могли */ }
+    });
   }
-  if (sid) cache.put('brief:' + sid, ok ? 'done' : 'failed', SEEN_TTL);
+  if (sid && cache) {
+    try {
+      cache.put('brief:' + sid, ok ? 'done' : 'failed', SEEN_TTL);
+      cache.put('brief-d:' + sid, JSON.stringify({ telegram: res.telegram, tgFiles: res.tgFiles, email: res.email, mailFiles: res.mailFiles, drive: res.drive, clientFiles: uploads.length, errors: res.errors.slice(0, 10) }), SEEN_TTL);
+    } catch (err) { }
+  }
   return json_(ok ? { ok: true } : { ok: false, error: 'Не удалось доставить: ' + res.errors.join('; ') });
 }
 
 /* ───────── тексты уведомлений ───────── */
 
-function telegramText_(data, kp, folderUrl, kpDocUrl, stamp) {
+function telegramText_(data, kp, folderUrl, kpDocUrl, when, filesCount) {
   var s = data.summary || {};
   var L = [];
-  L.push('📝 <b>Новый бриф на сайт</b> · ' + esc_(stamp) + (s.tag ? ' · #' + esc_(s.tag) : ''));
+  L.push('📝 <b>Новый бриф на сайт</b>');
+  L.push(esc_(when) + (s.tag ? ' · #' + esc_(String(s.tag).replace(/[^\wа-яё]/gi, '_')) : ''));
   L.push('');
-  if (s.company) L.push('🏢 <b>' + esc_(s.company) + '</b>' + (s.sphere ? ' · ' + esc_(s.sphere) : ''));
+  L.push('🏢 <b>' + esc_(s.company || 'Без названия') + '</b>');
+  if (s.sphere) L.push(esc_(s.sphere));
   if (s.brands) L.push('🏷 ' + esc_(s.brands));
-  L.push('👤 ' + esc_(s.name || 'без имени') + (s.role ? ' · ' + esc_(s.role) : ''));
+  L.push('');
+  L.push('👤 <b>' + esc_(s.name || 'Без имени') + '</b>');
   if (s.phone) L.push('📞 ' + esc_(s.phone));
   if (s.messenger) L.push('💬 ' + esc_(s.messenger));
   if (s.email) L.push('✉️ ' + esc_(s.email));
-  L.push('');
-  if (s.main) L.push('🎯 Главное: ' + esc_(s.main));
-  if (s.type) L.push('🧱 Сайт: ' + esc_(s.type));
-  if (s.orders) L.push('🛒 Заказы: ' + esc_(s.orders));
-  if (s.booking) L.push('📅 Запись: ' + esc_(s.booking));
-  if (s.budget) L.push('💰 Бюджет: ' + esc_(s.budget));
-  if (s.deadline) L.push('⏱ Сроки: ' + esc_(s.deadline));
-  if (s.filesCount) L.push('📎 Файлов: ' + s.filesCount);
-  if (kp && kp.internal) {
+  var need = [];
+  if (s.main) need.push('🎯 ' + esc_(s.main));
+  if (s.type) need.push('🧱 Формат: ' + esc_(s.type));
+  if (s.orders) need.push('🛒 Заказы: ' + esc_(s.orders));
+  if (s.booking) need.push('📅 Бронь и запись: ' + esc_(s.booking));
+  if (s.budget) need.push('💰 Бюджет: ' + esc_(s.budget));
+  if (s.deadline) need.push('⏱ Сроки: ' + esc_(s.deadline));
+  if (need.length) {
+    L.push('');
+    L.push('<b>Что нужно</b>');
+    L = L.concat(need);
+  }
+  if (kp && kp.internal && kp.internal.short && kp.internal.short.length) {
     L.push('');
     L.push('<b>Для тебя</b>');
-    kp.internal.short.forEach(function (x) { L.push('• ' + esc_(x)); });
+    L.push('<blockquote>' + kp.internal.short.map(function (x) { return '• ' + esc_(x); }).join('\n') + '</blockquote>');
   }
-  L.push('');
   var links = [];
-  if (kpDocUrl) links.push('<a href="' + kpDocUrl + '">Черновик КП</a>');
-  if (folderUrl) links.push('<a href="' + folderUrl + '">Папка с файлами</a>');
-  if (links.length) L.push(links.join(' · '));
-  var text = L.join('\n');
-  return text.length > 4000 ? text.slice(0, 3990) + '…' : text;
+  if (kpDocUrl) links.push('💼 <a href="' + esc_(kpDocUrl) + '">Черновик КП</a>');
+  if (folderUrl) links.push('📁 <a href="' + esc_(folderUrl) + '">Папка на Диске</a>');
+  L.push('');
+  if (links.length) L.push(links.join('   '));
+  L.push('⬇️ Ниже бриф целиком' + (kp ? ', черновик КП' : '') + (filesCount ? ' и файлы клиента: ' + filesCount : ''));
+  return L.join('\n');
 }
 
-function emailHtml_(data, kp, folderUrl, kpDocUrl, uploadsCount, attachedCount) {
+function emailHtml_(data, kp, folderUrl, kpDocUrl, when, uploadsCount, attachedCount) {
   var s = data.summary || {};
-  var box = 'style="background:#f5f5f7;border-radius:12px;padding:16px 18px;margin:0 0 18px;font:14px/1.5 Arial,sans-serif;color:#1d1d1f"';
+  var F = "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;";
   var h = [];
-  h.push('<div style="max-width:720px;margin:0 auto;font:15px/1.5 Arial,sans-serif;color:#1d1d1f">');
-  h.push('<p style="margin:0 0 4px;color:#6e6e73;font-size:13px">Бриф на сайт' + (s.tag ? ' · ' + esc_(s.tag) : '') + '</p>');
-  h.push('<h1 style="margin:0 0 6px;font-size:22px">' + esc_(s.company || s.name || 'без имени') + (s.sphere ? ' · ' + esc_(s.sphere) : '') + '</h1>');
-  h.push('<p style="margin:0 0 16px">' + [s.name, s.role, s.phone, s.messenger, s.email].filter(String).map(esc_).join(' · ') + '</p>');
-  var links = [];
-  if (kpDocUrl) links.push('<a href="' + kpDocUrl + '">Черновик КП в Google Docs</a>');
-  if (folderUrl) links.push('<a href="' + folderUrl + '">Папка на Диске</a>');
-  if (links.length) h.push('<p style="margin:0 0 16px">' + links.join(' · ') + '</p>');
-  if (uploadsCount) h.push('<p style="margin:0 0 16px;color:#7a6e63;font-size:13px">Файлов от клиента: ' + uploadsCount + ', в письме: ' + attachedCount + (attachedCount < uploadsCount ? ' — остальные в папке на Диске' : '') + '</p>');
-  if (kp && kp.internal) {
-    h.push('<div ' + box + '><b style="font-size:15px">Для тебя: разбор и оценка</b>');
-    h.push(kp.internal.html);
-    h.push('</div>');
+  h.push('<div style="margin:0;padding:24px 12px;background:#f5f5f7;' + F + 'color:#1d1d1f">');
+  h.push('<div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e8e8ed;border-radius:18px;overflow:hidden">');
+
+  // шапка
+  h.push('<div style="background:#0071e3;background-image:linear-gradient(135deg,#0071e3,#5856d6);padding:22px 26px;color:#ffffff">' +
+    '<div style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.85">Новый бриф на сайт · ' + esc_(when) + (s.tag ? ' · #' + esc_(s.tag) : '') + '</div>' +
+    '<div style="font-size:24px;font-weight:700;line-height:1.25;margin-top:6px">' + esc_(s.company || s.name || 'Без названия') + '</div>' +
+    ((s.sphere || s.brands) ? '<div style="font-size:14px;opacity:.92;margin-top:4px">' + esc_([s.sphere, s.brands].filter(String).join(' · ')) + '</div>' : '') +
+    '</div>');
+
+  h.push('<div style="padding:20px 26px 8px">');
+
+  // контакты — сразу кликабельные
+  var rows = [];
+  rows.push(['👤', '<b>' + esc_(s.name || 'Без имени') + '</b>']);
+  if (s.phone) rows.push(['📞', '<a href="tel:' + esc_(String(s.phone).replace(/[^\d+]/g, '')) + '" style="color:#0071e3;text-decoration:none">' + esc_(s.phone) + '</a>']);
+  if (s.messenger) {
+    var m = String(s.messenger).trim();
+    var tgLink = /^@?[a-z0-9_]{5,}$/i.test(m) ? 'https://t.me/' + m.replace(/^@/, '') : '';
+    rows.push(['💬', tgLink ? '<a href="' + tgLink + '" style="color:#0071e3;text-decoration:none">' + esc_(m) + '</a>' : esc_(m)]);
   }
+  if (s.email) rows.push(['✉️', '<a href="mailto:' + esc_(s.email) + '" style="color:#0071e3;text-decoration:none">' + esc_(s.email) + '</a>']);
+  h.push('<table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 16px">' +
+    rows.map(function (r) { return '<tr><td style="padding:3px 10px 3px 0;font-size:15px;vertical-align:top">' + r[0] + '</td><td style="padding:3px 0;font-size:15px">' + r[1] + '</td></tr>'; }).join('') +
+    '</table>');
+
+  // кнопки
+  var btn = 'display:inline-block;margin:0 8px 8px 0;padding:10px 16px;border-radius:99px;font-size:14px;font-weight:600;text-decoration:none;';
+  var buttons = [];
+  if (kpDocUrl) buttons.push('<a href="' + kpDocUrl + '" style="' + btn + 'background:#0071e3;color:#ffffff">Черновик КП в Google Docs</a>');
+  if (folderUrl) buttons.push('<a href="' + folderUrl + '" style="' + btn + 'background:#f5f5f7;color:#1d1d1f;border:1px solid #e8e8ed">Папка с файлами</a>');
+  if (buttons.length) h.push('<div style="margin:0 0 10px">' + buttons.join('') + '</div>');
+
+  // кратко
+  var facts = [];
+  if (s.main) facts.push(['Главная задача', s.main]);
+  if (s.type) facts.push(['Формат', s.type]);
+  if (s.orders) facts.push(['Заказы', s.orders]);
+  if (s.booking) facts.push(['Бронь и запись', s.booking]);
+  if (s.budget) facts.push(['Бюджет', s.budget]);
+  if (s.deadline) facts.push(['Сроки', s.deadline]);
+  if (facts.length) {
+    h.push('<table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin:8px 0 18px;border:1px solid #e8e8ed;border-radius:12px">' +
+      facts.map(function (f, i) {
+        return '<tr><td style="padding:10px 14px;font-size:13px;color:#6e6e73;width:34%;vertical-align:top;' + (i ? 'border-top:1px solid #e8e8ed;' : '') + '">' + esc_(f[0]) + '</td>' +
+          '<td style="padding:10px 14px;font-size:14.5px;vertical-align:top;' + (i ? 'border-top:1px solid #e8e8ed;' : '') + '">' + esc_(f[1]) + '</td></tr>';
+      }).join('') + '</table>');
+  }
+
+  // файлы
+  if (uploadsCount) {
+    h.push('<p style="margin:0 0 18px;font-size:13.5px;color:#6e6e73">📎 Файлов от клиента: <b style="color:#1d1d1f">' + uploadsCount + '</b>' +
+      (attachedCount >= uploadsCount ? ' — все во вложениях' : ', во вложениях: ' + attachedCount + ' — остальные в <a href="' + (folderUrl || '#') + '" style="color:#0071e3">папке на Диске</a>') + '</p>');
+  }
+
+  // для тебя
+  if (kp && kp.internal) {
+    h.push('<div style="margin:0 0 22px;padding:16px 18px;border-radius:14px;background:#fff8e6;border:1px solid #f5d38a">' +
+      '<div style="font-size:15px;font-weight:700;margin:0 0 6px">Для тебя: разбор и оценка</div>' +
+      '<div style="font-size:14px;line-height:1.5">' + kp.internal.html + '</div></div>');
+  }
+
+  // все ответы
   var body = data.reportBody || '';
-  if (body.length > 150000) body = '<p>Ответы слишком длинные для письма — полный бриф во вложении.</p>';
-  h.push(body);
+  if (body.length > 150000) body = '<p>Ответы слишком длинные для письма — полный бриф во вложении</p>';
+  h.push('<div style="border-top:1px solid #e8e8ed;padding-top:4px">' + body + '</div>');
   h.push('</div>');
+  h.push('<div style="padding:14px 26px 20px;font-size:12px;color:#86868b;border-top:1px solid #f0f0f3">Бриф целиком и черновик КП — во вложениях PDF. Ответить клиенту можно прямо на это письмо, если он указал почту</div>');
+  h.push('</div></div>');
   return h.join('\n');
 }
 
 /* ───────── Telegram ───────── */
 
+// Запрос к Telegram с повтором: «подождите N секунд» (429) и сбои на стороне Telegram (5xx)
+function tgFetch_(token, method, options) {
+  options.muteHttpExceptions = true;
+  var j = {};
+  for (var attempt = 0; attempt < 3; attempt++) {
+    var r = UrlFetchApp.fetch('https://api.telegram.org/bot' + token + '/' + method, options);
+    var code = r.getResponseCode();
+    try { j = JSON.parse(r.getContentText() || '{}'); } catch (e) { j = { description: 'HTTP ' + code }; }
+    if (j.ok) return j.result;
+    if (code === 429) { Utilities.sleep(Math.min((j.parameters && j.parameters.retry_after) || 3, 20) * 1000 + 300); continue; }
+    if (code >= 500) { Utilities.sleep(1500); continue; }
+    break;
+  }
+  throw new Error(method + ': ' + (j.description || 'нет ответа'));
+}
+
 function tg_(token, method, payload) {
-  var r = UrlFetchApp.fetch('https://api.telegram.org/bot' + token + '/' + method, {
-    method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true
-  });
-  var j = JSON.parse(r.getContentText() || '{}');
-  if (!j.ok) throw new Error(method + ': ' + (j.description || r.getResponseCode()));
-  return j.result;
+  return tgFetch_(token, method, { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload) });
+}
+
+// Сводка с разметкой; если Telegram её не принял — тот же текст без разметки, лишь бы дошло
+function tgText_(token, chat, html) {
+  if (html.length <= 4000) {
+    try {
+      return tg_(token, 'sendMessage', { chat_id: chat, text: html, parse_mode: 'HTML', disable_web_page_preview: true });
+    } catch (err) {
+      console.warn('Telegram не принял разметку: ' + err);
+    }
+  }
+  return tg_(token, 'sendMessage', { chat_id: chat, text: plain_(html).slice(0, 4000), disable_web_page_preview: true });
 }
 
 function tgDoc_(token, chat, blob, caption) {
-  var r = UrlFetchApp.fetch('https://api.telegram.org/bot' + token + '/sendDocument', {
-    method: 'post',
-    payload: { chat_id: String(chat), caption: String(caption || '').slice(0, 1000), document: blob },
-    muteHttpExceptions: true
-  });
-  var j = JSON.parse(r.getContentText() || '{}');
-  if (!j.ok) throw new Error('sendDocument ' + blob.getName() + ': ' + (j.description || r.getResponseCode()));
+  return tgFetch_(token, 'sendDocument', { method: 'post', payload: { chat_id: String(chat), caption: String(caption || '').slice(0, 1000), document: tgBlob_(blob) } });
+}
+
+// Google при отправке выкидывает из имён файлов кириллицу: «Тексты для сайта.docx» доходил как «docx» без имени,
+// и телефон не понимал, чем его открыть. Поэтому в Telegram — имя латиницей с расширением, настоящее — в подписи
+function tgBlob_(blob) {
+  return blob.copyBlob().setName(asciiName_(blob.getName()));
+}
+
+var TRANSLIT = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya', і: 'i', ў: 'u', ї: 'yi', є: 'ye', ґ: 'g' };
+
+function asciiName_(name) {
+  var m = String(name || '').normalize('NFC').match(/^(.*?)(\.[A-Za-z0-9]{1,8})?$/); // имена с Mac и iPhone приходят в NFD: «й» = «и» + знак
+  var ext = (m[2] || '').toLowerCase();
+  var base = m[1].split('').map(function (ch) {
+    var lo = ch.toLowerCase(), r = TRANSLIT[lo];
+    if (r === undefined) return ch;
+    return ch === lo || !r ? r : r.charAt(0).toUpperCase() + r.slice(1);
+  }).join('');
+  base = base.replace(/[^A-Za-z0-9_-]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+  return (base || 'file') + ext;
+}
+
+// Файлы — альбомами до 10 штук; альбом не прошёл — по одному; файл не прошёл — ссылка на Диск. Возвращает, сколько дошло
+function tgFiles_(token, chat, items, errors, folderUrl) {
+  var sent = 0;
+  for (var i = 0; i < items.length; i += 10) {
+    var group = items.slice(i, i + 10);
+    if (group.length > 1) {
+      try {
+        var payload = { chat_id: String(chat) }, media = [];
+        group.forEach(function (it, k) {
+          payload['f' + k] = tgBlob_(it.blob);
+          media.push({ type: 'document', media: 'attach://f' + k, caption: String(it.caption || '').slice(0, 1000) });
+        });
+        payload.media = JSON.stringify(media);
+        tgFetch_(token, 'sendMediaGroup', { method: 'post', payload: payload });
+        sent += group.length;
+        continue;
+      } catch (err) {
+        console.warn('Альбом не прошёл, отправляю по одному: ' + err);
+      }
+    }
+    group.forEach(function (it) {
+      try {
+        tgDoc_(token, chat, it.blob, it.caption);
+        sent++;
+      } catch (err) {
+        errors.push('Telegram, файл ' + it.blob.getName() + ': ' + err);
+        try { tg_(token, 'sendMessage', { chat_id: chat, text: '📎 Файл «' + it.blob.getName() + '» не прошёл в Telegram — он в папке на Диске' + (folderUrl ? ': ' + folderUrl : '') }); } catch (e) { }
+      }
+    });
+  }
+  return sent;
 }
 
 /* ───────── служебные ───────── */
+
+function cache_() {
+  try { return CacheService.getScriptCache(); } catch (e) { return null; }
+}
+
+function ruDate_(d) {
+  var p = Utilities.formatDate(d, TZ, 'dd|MM|HH:mm').split('|');
+  return (+p[0]) + ' ' + MONTHS[+p[1] - 1] + ', ' + p[2];
+}
+
+// HTML → PDF: так бриф и КП открываются прямо в Telegram и почте на телефоне; не вышло — остаётся HTML
+function pdf_(htmlBlob) {
+  try {
+    var b = htmlBlob.getAs('application/pdf');
+    b.setName(htmlBlob.getName().replace(/\.html?$/i, '') + '.pdf');
+    return b;
+  } catch (err) {
+    console.warn('PDF не собрался, отправлю HTML: ' + err);
+    return htmlBlob;
+  }
+}
+
+function plain_(html) {
+  return String(html).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+}
+
 
 function props_() {
   var p = PropertiesService.getScriptProperties().getProperties();
@@ -261,7 +436,7 @@ function rootFolder_(P) {
 }
 
 function safeName_(s) {
-  return String(s || 'file').replace(/[\\\/:*?"<>|\u0000-\u001f]+/g, '_').replace(/\s+/g, ' ').trim().slice(0, 120) || 'file';
+  return String(s || 'file').normalize('NFC').replace(/[\\\/:*?"<>|\u0000-\u001f]+/g, '_').replace(/\s+/g, ' ').trim().slice(0, 120) || 'file';
 }
 
 function esc_(s) {

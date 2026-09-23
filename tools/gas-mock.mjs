@@ -24,6 +24,8 @@ function makeContext(dir) {
     constructor(bytes, type, name) { this.bytes = Buffer.isBuffer(bytes) ? bytes : Buffer.from(String(bytes), 'utf8'); this.type = type; this.name = name; }
     getName() { return this.name; } getContentType() { return this.type; } getBytes() { return this.bytes; }
     setName(n) { this.name = n; return this; }
+    getAs(t) { return new Blob(this.bytes, t, this.name); }
+    copyBlob() { return new Blob(this.bytes, this.type, this.name); }
   }
   const folder = (name) => ({
     name,
@@ -78,7 +80,13 @@ function makeContext(dir) {
         const method = url.split('/').pop();
         if (method === 'sendMessage') {
           const p = JSON.parse(o.payload);
-          fs.appendFileSync(path.join(dir, 'telegram.txt'), `── ${method} → ${p.chat_id}\n${p.text}\n\n`);
+          fs.appendFileSync(path.join(dir, 'telegram.txt'), `── ${method} → ${p.chat_id}${p.parse_mode ? ' (' + p.parse_mode + ')' : ''}\n${p.text}\n\n`);
+        } else if (method === 'sendMediaGroup') {
+          const media = JSON.parse(o.payload.media);
+          fs.appendFileSync(path.join(dir, 'telegram.txt'), `── ${method} → ${o.payload.chat_id}: ${media.length} файлов\n` + media.map((m) => {
+            const b = o.payload[m.media.replace('attach://', '')];
+            return `   ${b.getName()} (${b.getBytes().length} байт) «${m.caption}»`;
+          }).join('\n') + '\n');
         } else {
           fs.appendFileSync(path.join(dir, 'telegram.txt'), `── ${method} → ${o.payload.chat_id}: ${o.payload.document.getName()} (${o.payload.document.getBytes().length} байт) «${o.payload.caption}»\n`);
         }
