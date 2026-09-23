@@ -1018,7 +1018,7 @@
     return {
       name: d.c_name || '', role: d.c_role || '', phone: d.c_phone || '', messenger: d.c_messenger || '', email: d.c_email || '',
       company: d.b_name || '', sphere: d.b_sphere || '', brands: c.brands.length > 1 ? c.brands.map(function (b) { return b[1]; }).join(', ') : '',
-      main: d.g_main || '', type: d.s_type || '', orders: d.o_need || '', booking: d.bk_need || '',
+      main: d.g_main || '', type: answers.s_type === 'advise' ? 'подобрать — клиент просит совета' : (d.s_type || ''), orders: d.o_need || '', booking: d.bk_need || '',
       budget: d.g_budget || '', deadline: d.g_deadline || '', tag: tag,
       filesCount: Object.keys(files).reduce(function (n, k) { return n + files[k].length; }, 0)
     };
