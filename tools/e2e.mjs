@@ -30,7 +30,7 @@ async function run(viewport, name, fn) {
     const theme = await page.getAttribute('html', 'data-theme');
     assert(theme === 'light', 'по умолчанию светлая тема');
     const cards = await page.locator('.mq-row .work:not([aria-hidden])').count();
-    assert(cards === 24, 'в бегущей строке все проекты: ' + cards);
+    assert(cards === 23, 'в бегущей строке все проекты: ' + cards);
     const x1 = await page.$eval('.mq-track', (t) => t.style.transform);
     await page.waitForTimeout(700);
     const x2 = await page.$eval('.mq-track', (t) => t.style.transform);

@@ -37,7 +37,6 @@
     { row: 1, title: 'BI13', tags: ['Фотография', 'Образование'], text: 'Онлайн-школа мобильной фотографии', img: W + 'bi13.webp', href: 'https://bi13pro.ru/aestheticbi13' },
     { row: 1, title: 'Savinar', tags: ['Образование', 'SMM'], text: 'Лендинг курса по продвижению', img: W + 'savinar.webp', href: 'https://savinarv.tilda.ws/' },
     { row: 1, title: 'Nasha', tags: ['Магазин'], text: 'Интернет-магазин одежды', img: W + 'nasha.webp', href: 'https://nashashop.ru/catalog' },
-    { row: 1, title: 'SmartLogic', tags: ['Магазин'], text: 'Лендинг садовой мебели', img: W + 'smartlogic.webp', href: 'https://elenasamanchuk.github.io/smartlogic-landing/' },
     { row: 1, title: 'HR-витрина', tags: ['Вакансии'], text: 'Найм менеджеров продаж', img: W + 'hr.webp', href: 'https://sales-manager-chat.tilda.ws/' },
     { row: 2, title: 'Growfood', tags: ['Еда'], text: 'Подбор программы питания', img: W + 'gf-calc.webp', href: 'https://amb.growfood.pro/food-selection-1' },
     { row: 2, title: 'Growfood', tags: ['Еда', 'Игра'], text: 'Колесо фортуны с призами и промокодами', img: W + 'gf-wheel.webp', href: 'https://amb.growfood.pro/page79566396.html#reg' },
