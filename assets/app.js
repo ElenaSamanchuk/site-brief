@@ -1338,24 +1338,34 @@
   renderWorks();
   render();
 
-  // рекламный ролик: играет, только когда виден; при отключённых анимациях — постер и кнопка «Смотреть»
+  // рекламный ролик: грузится, только когда до него долистали, и играет, только когда виден;
+  // на телефоне — вертикальная версия; при отключённых анимациях — постер и кнопка «Смотреть»
   (function promoVideo() {
     var box = document.getElementById('promo-video');
     if (!box) return;
-    var v = box.querySelector('video'), btn = box.querySelector('.promo-play');
-    // на телефоне — вертикальная версия ролика, как сторис
-    if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches && v.getAttribute('data-vertical-src')) {
-      box.classList.add('is-vertical');
-      v.poster = v.getAttribute('data-vertical-poster');
-      Array.prototype.slice.call(v.querySelectorAll('source')).forEach(function (s) { s.remove(); });
-      v.src = v.getAttribute('data-vertical-src');
+    var v = box.querySelector('video'), btn = box.querySelector('.promo-play'), loaded = false;
+    var vertical = window.matchMedia && window.matchMedia('(max-width: 640px)').matches && v.getAttribute('data-vertical-src');
+    if (vertical) { box.classList.add('is-vertical'); v.poster = v.getAttribute('data-vertical-poster'); }
+    function load() {
+      if (loaded) return;
+      loaded = true;
+      if (vertical) {
+        Array.prototype.slice.call(v.querySelectorAll('source')).forEach(function (s) { s.remove(); });
+        v.src = v.getAttribute('data-vertical-src');
+      } else {
+        Array.prototype.slice.call(v.querySelectorAll('source[data-src]')).forEach(function (s) { s.src = s.getAttribute('data-src'); });
+      }
+      v.preload = 'auto';
       v.load();
     }
-    function play() { var p = v.play(); if (p && p.catch) p.catch(function () { box.classList.add('is-paused'); }); }
+    function play() { load(); var p = v.play(); if (p && p.catch) p.catch(function () { box.classList.add('is-paused'); }); }
     btn.addEventListener('click', function () { box.classList.remove('is-paused'); v.controls = true; play(); });
     if (reduceMotion || !('IntersectionObserver' in window)) { box.classList.add('is-paused'); return; }
+    // подгружаем заранее: за экран до блока или через пару секунд после открытия, когда первый экран уже показан
+    new IntersectionObserver(function (es) { if (es[0].isIntersecting) load(); }, { rootMargin: '1000px 0px' }).observe(box);
+    window.addEventListener('load', function () { setTimeout(load, 2500); });
     new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { if (!box.classList.contains('is-paused')) play(); } else v.pause(); });
+      es.forEach(function (e) { if (e.isIntersecting) { if (!box.classList.contains('is-paused')) play(); } else if (loaded) v.pause(); });
     }, { threshold: 0.35 }).observe(box);
   })();
 })();
