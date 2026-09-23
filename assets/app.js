@@ -36,6 +36,9 @@
     t = t.replace(/ (—|–) /g, NB + '$1 ');
     t = t.replace(/(\d) (?=[А-Яа-яЁёA-Za-z%₽$€])/g, '$1' + NB);
     t = t.replace(/ (бы|ли|же)(?=[\s,.!?;:]|$)/g, NB + '$1');
+    t = t.replace(/(\d)[–-](\d)/g, '$1\u2060–\u2060$2'); // «10–15» не разрывается между строками
+    t = t.replace(/ · /g, NB + '· '); // строка не начинается с «·»
+    t = t.replace(/ ↗/g, NB + '↗');
     return t;
   }
   function typoTree(root) {
@@ -92,7 +95,7 @@
   }
   function linkEls(m, cls) {
     return metaLinks(m).map(function (l) {
-      return h('a', { class: cls || 'ex-link', href: l.href, target: '_blank', rel: 'noopener' }, [l.text + ' ↗']);
+      return h('a', { class: cls || 'ex-link', href: l.href, target: '_blank', rel: 'noopener' }, [l.text + NB + '↗']);
     });
   }
 
@@ -395,7 +398,7 @@
         h('span', { class: 'style-title' }, [sty.title]),
         h('span', { class: 'style-note' }, [sty.note]),
         h('span', { class: 'style-sw', 'aria-hidden': 'true' }, sty.swatches.map(function (c) { return h('i', { style: 'background:' + c }); })),
-        sty.example ? h('a', { class: 'ex-link', href: sty.example.href, target: '_blank', rel: 'noopener' }, ['Пример: ' + sty.example.text + ' ↗']) : null,
+        sty.example ? h('a', { class: 'ex-link', href: sty.example.href, target: '_blank', rel: 'noopener' }, ['Пример: ' + sty.example.text + NB + '↗']) : null,
         h('div', { class: 'style-actions' }, [btn('yes', '✓ Нравится'), btn('no', '✕ Не моё')])
       ]));
       box.appendChild(card);
@@ -805,7 +808,7 @@
         if (s.fields.some(function (f) { return f.defaultAll; })) s.fields.forEach(function (f) { if (f.defaultAll) answers[f.id + '__seen'] = true; });
         var k = document.getElementById('kicker-' + s.id);
         var n = indexOfStep(partSteps, s.id) + 1;
-        if (k) k.textContent = (PARTS[s.part] ? PARTS[s.part].title : 'Часть ' + s.part) + ' · шаг ' + n + ' из ' + partSteps.length + ' · ≈ ' + minutes(s) + ' мин' + (s.part === 2 ? ' · можно пропустить' : '');
+        if (k) k.textContent = (PARTS[s.part] ? PARTS[s.part].title : 'Часть ' + s.part) + ' · шаг ' + n + ' из ' + partSteps.length + ' · ≈ ' + minutes(s) + ' мин';
       }
     });
     ['break', 'finish'].forEach(function (id) {

@@ -27,7 +27,6 @@
   window.BRIEF_WORKS = [
     { row: 1, title: 'Sender', tags: ['ИИ', 'SaaS'], text: 'ИИ-бот для поддержки клиентов', img: W + 'nn99.webp', href: 'https://nn99.ru/', badge: 'Своя админка' },
     { row: 1, title: 'Platformax', tags: ['Образование', 'SaaS'], text: 'Платформа для онлайн-школ', img: W + 'platformax.webp', href: 'https://platformax.pro/', badge: 'Своя админка' },
-    { row: 1, title: 'Yandex Pet Day', tags: ['Мероприятие'], text: 'Лендинг конференции под ключ', img: W + 'yandex-pet-day.webp', href: 'https://elenasamanchuk.github.io/yandex-pet-day/' },
     { row: 1, title: 'Система Ясности', tags: ['Образование', 'Психология'], text: 'Сайт онлайн-школы психологии', img: W + 'yasnost.webp', href: 'https://sistemayasnosti.com/' },
     { row: 1, title: 'MedveDiva', tags: ['Фитнес', 'Образование'], text: 'Онлайн-фитнес-клуб', img: W + 'medvediva.webp', href: 'https://medvediva.ru/' },
     { row: 1, title: 'Форма', tags: ['Фитнес'], text: 'Сайт фитнес-эксперта', img: W + 'yourforma.webp', href: 'https://yourforma.ru/' },
@@ -35,18 +34,19 @@
     { row: 1, title: 'Popovichfit', tags: ['Фитнес', 'Образование'], text: 'Онлайн-фитнес-клуб', img: W + 'popovichfit.webp', href: 'https://popovichfit.ru/' },
     { row: 1, title: 'Kinezio Fitness', tags: ['Фитнес', 'Образование'], text: 'Бесплатный модуль курса', img: W + 'kinezio.webp', href: 'https://kineziofitness.online/module-zero' },
     { row: 1, title: 'BI13', tags: ['Фотография', 'Образование'], text: 'Онлайн-школа мобильной фотографии', img: W + 'bi13.webp', href: 'https://bi13pro.ru/aesthetic-high-level' },
-    { row: 1, title: 'Savinar', tags: ['Образование', 'SMM'], text: 'Лендинг курса по продвижению', img: W + 'savinar.webp', href: 'https://savinarv.tilda.ws/' },
     { row: 1, title: 'Nasha', tags: ['Магазин'], text: 'Интернет-магазин одежды', img: W + 'nasha.webp', href: 'https://nashashop.ru/' },
-    { row: 1, title: 'HR-витрина', tags: ['Вакансии'], text: 'Найм менеджеров продаж', img: W + 'hr.webp', href: 'https://sales-manager-chat.tilda.ws/' },
     { row: 2, title: 'Growfood', tags: ['Еда'], text: 'ИМТ-калькулятор и подбор питания', img: W + 'gf-calc.webp', href: 'https://amb.growfood.pro/food-selection-1' },
     { row: 2, title: 'Growfood', tags: ['Еда', 'Игра'], text: 'Колесо фортуны с призами и промокодами', img: W + 'gf-wheel.webp', href: 'https://amb.growfood.pro/page79566396.html#reg' },
     { row: 2, title: 'Приём', tags: ['Еда', 'Акции'], text: 'Таймер акции с Т-Банком', img: W + 'priem-main.webp', href: 'https://priem.menu/?cmz=Kdw5' },
     { row: 2, title: 'Приём', tags: ['Еда', 'Игра'], text: 'Игра-мемо «Запомни лето»', img: W + 'priem-cards.webp', href: 'https://priem.menu/?cmz=mmBd' },
+    { row: 2, title: 'Savinar', tags: ['Образование', 'SMM'], text: 'Лендинг курса по продвижению', img: W + 'savinar.webp', href: 'https://savinarv.tilda.ws/' },
     { row: 2, title: 'GF Gift', tags: ['Еда'], text: 'Подарочные сертификаты с корзиной', img: W + 'gfgift.webp', href: 'https://gf-gift.ru/#podari' },
     { row: 2, title: 'Growfood', tags: ['Еда'], text: 'Плейлист к приёмам пищи', img: W + 'gfmusic.webp', href: 'https://gfmusic.tilda.ws/#rec943861591' },
+    { row: 2, title: 'Yandex Pet Day', tags: ['Мероприятие'], text: 'Лендинг конференции под ключ', img: W + 'yandex-pet-day.webp', href: 'https://elenasamanchuk.github.io/yandex-pet-day/' },
     { row: 2, title: 'HTML5-баннеры', tags: ['Реклама'], text: 'Анимированные баннеры для акций', img: W + 'html5-banners.webp', href: 'https://elenasamanchuk.github.io/html5-banners-vitrina/' },
     { row: 2, title: 'KnowEmbed', tags: ['ИИ', 'SaaS'], text: 'Конструктор ИИ-чат-ботов', img: W + 'knowembed.webp', href: 'https://elenasamanchuk.github.io/knowembed/' },
     { row: 2, title: 'Still store', tags: ['Магазин'], text: 'Демо интернет-магазина', img: W + 'still-store.webp', href: 'https://elenasamanchuk.github.io/still-store/' },
+    { row: 2, title: 'HR-витрина', tags: ['Вакансии'], text: 'Найм менеджеров продаж', img: W + 'hr.webp', href: 'https://sales-manager-chat.tilda.ws/' },
     { row: 2, title: 'ZERO // Пробуждение', tags: ['Ивент'], text: 'Лендинг премьеры персонажа', img: W + 'zero.webp', href: 'https://elenasamanchuk.github.io/zero-awakening/' }
   ];
 
